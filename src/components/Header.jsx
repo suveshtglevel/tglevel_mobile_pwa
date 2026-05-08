@@ -89,7 +89,10 @@ export default function Header() {
         </div> */}
 
         {/* Bell Icon */}
-        <div className="relative w-8 h-8 shrink-0 flex items-center justify-center cursor-pointer">
+        <div
+          onClick={() => router.push('/notifications')}
+          className="relative w-8 h-8 shrink-0 flex items-center justify-center cursor-pointer"
+        >
           <Image src="/chatbell.png" alt="Notifications" width={29} height={29} className="object-contain" />
           {unreadNotifications > 0 && (
              <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border border-white"></span>

@@ -1,54 +1,42 @@
-import { api } from './apiHelper';
+const RESEARCH_ANALYSIS_TEXT = `*✅*RESEARCH ANALYSIS✅*
 
-const CATEGORY_ID_MAP = {
-  NFT: 1,
-  EQT: 2,
-  COM: 3,
-  SWG: 4,
+*BUY NIFTY 13 APR 23650 CE*
+
+*Entry Above =* 168
+*SL =* 153
+*Target 1 =* 183
+*Target 2 =* 198
+
+*Disclaimer*: Investments in the market are subject to market risk. Please read all related documents carefully before investing. Registration granted by SEBI, Enlistment as RA with Exchange and certification from NISM in no way guarantee performance of the intermediary or provide any assurance of returns to investors.
+*Our Customer Care:-*99871 96114
+*Rationale*=https://bit.ly/3PYI0J7
+*Confidence Level Trade*
+*🟡 Medium probability*`;
+
+const buildDummyMessages = (category) => {
+  const tag = category === 'All' ? 'NFT' : category;
+  const now = Date.now();
+  return [
+    {
+      id: 123,
+      type: 'premium',
+      tag,
+      views: 1155,
+      timestamp: new Date(now - 1000 * 60 * 60).toISOString(),
+      content: { text: RESEARCH_ANALYSIS_TEXT },
+    },
+    {
+      id: 124,
+      type: 'premium',
+      tag,
+      views: 980,
+      timestamp: new Date(now - 1000 * 60 * 30).toISOString(),
+      content: { text: RESEARCH_ANALYSIS_TEXT },
+    },
+  ];
 };
 
-const TAG_BY_CATEGORY_ID = {
-  1: 'NFT',
-  2: 'EQT',
-  3: 'COM',
-  4: 'SWG',
-};
-
-const mapApiMessage = (msg) => ({
-  id: msg._id,
-  type: msg.message_type === 1 ? 'premium' : 'white',
-  tag: TAG_BY_CATEGORY_ID[msg.category_id] || 'NFT',
-  views: msg.views,
-  timestamp: msg.created_at,
-  content: {
-    text: msg.message,
-  },
-});
-
-export const fetchMessagesFromApi = async (category, page = 1, limit = 10) => {
-  try {
-    const params = { page, limit };
-    if (category !== 'All') {
-      const catId = CATEGORY_ID_MAP[category];
-      if (catId) params.category_id = catId;
-    }
-
-    const response = await api.get('/messages', { params });
-
-    if (!response.data.status) {
-      return { data: [], hasMore: false };
-    }
-
-    const rawMessages = response.data.data || [];
-    const messages = rawMessages.map(mapApiMessage);
-    messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-    return {
-      data: messages,
-      hasMore: rawMessages.length >= limit,
-    };
-  } catch (error) {
-    console.error('Failed to fetch messages:', error);
-    return { data: [], hasMore: false };
-  }
+export const fetchMessagesFromApi = async (category, page = 1) => {
+  if (page === 1) return { data: buildDummyMessages(category), hasMore: false };
+  return { data: [], hasMore: false };
 };

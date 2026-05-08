@@ -2,10 +2,8 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { CheckCheck, Eye, X, Star } from 'lucide-react';
+import { CheckCheck, Eye, X } from 'lucide-react';
 import { useSelector } from 'react-redux';
-import { motion, AnimatePresence } from "framer-motion"; // 🟢 Added framer motion
-import { useRouter } from 'next/navigation';
 
 // --- ADVANCED SMART TEXT PARSER ---
 const parseSmartText = (text) => {
@@ -41,17 +39,11 @@ const parseSmartText = (text) => {
 };
 
 export default function MessageCard({ message, showTag }) {
-  const router = useRouter();
   const userType = useSelector((state) => state.user.userData.userType);
   const isPremium = userType === "premium";
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
-
-  // 🟢 Feedback States
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [rating, setRating] = useState(0);
-  const [feedbackText, setFeedbackText] = useState("");
 
   if (!message || !message.timestamp || !message.content) return null;
   
@@ -64,14 +56,6 @@ export default function MessageCard({ message, showTag }) {
   // Check if content has the single 'text' field
   const hasTextContent = Boolean(message.content.text);
   const showImage = Boolean(message.content.image && !imgError);
-
-  const handleSubmitFeedback = () => {
-    // API Call ya Redux dispatch yahan hoga
-    console.log(`Feedback for message ${message.id}:`, { rating, text: feedbackText });
-    setShowFeedbackModal(false);
-    setRating(4); // Reset default rating
-    setFeedbackText(""); // Clear text
-  };
 
   return (
     <>
@@ -132,16 +116,6 @@ export default function MessageCard({ message, showTag }) {
               </div>
 
              <div className="flex items-center gap-1 text-[11px] text-black font-medium shrink-0 ml-auto">
-               {/* Center: Send Feedback Button */}
-              <div className="flex-1 flex justify-center px-1">
-                <button 
-                  onClick={() => setShowFeedbackModal(true)} // 🟢 Open Modal
-                  className="bg-[#228b22] hover:bg-[#1a7328] text-white text-[11px] font-medium px-2.5 py-1 rounded-md shadow-sm transition-colors whitespace-nowrap active:scale-95"
-                >
-                  Send Feedback
-                </button>
-              </div>
-
                 <span className="flex items-center gap-0.5">
                   ({message.views || 1155} <Eye size={12} strokeWidth={2.5} className="ml-0.5" />)
                 </span>
@@ -152,25 +126,6 @@ export default function MessageCard({ message, showTag }) {
             </div>                     
           </div>
 
-          {/* --- LOCK OVERLAY --- */}
-          {!isPremium && (
-            <div className="absolute inset-0 z-30 flex items-center justify-center rounded-[18px]">
-              <div className="bg-white/80 w-55 p-4 rounded-3xl shadow-[0_6px_20px_rgba(0,0,0,0.1)] flex flex-col items-center border border-white backdrop-blur-md">
-                <div className="mb-2.5 drop-shadow-sm">
-                  <svg width="22" height="28" viewBox="0 0 24 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7 11V7C7 4.23858 9.23858 2 12 2C14.7614 2 17 4.23858 17 7V11" stroke="#A1A1AA" strokeWidth="2.5" strokeLinecap="round"/>
-                    <rect x="4" y="11" width="16" height="13" rx="3" fill="#EAB308"/>
-                    <circle cx="12" cy="16" r="1.5" fill="#A16207"/>
-                    <path d="M11.25 16H12.75V20H11.25V16Z" fill="#A16207" className="rounded-b-sm"/>
-                  </svg>
-                </div>
-                <span className="text-[14px] font-bold text-gray-900 mb-3.5 tracking-tight">Premium Trade</span>
-                <button onClick={() => router.push('/support-chat')} className="bg-[#218b32] hover:bg-[#1a7328] text-white text-[13px] font-semibold py-2 px-4 rounded-xl w-full transition-transform active:scale-95 shadow-sm">
-                  Talk to us
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -201,72 +156,6 @@ export default function MessageCard({ message, showTag }) {
         </div>
       )}
 
-      {/* ========================================= */}
-      {/* 🟢 TRADE FEEDBACK MODAL (Zero-Rating Enabled) */}
-      {/* ========================================= */}
-      <AnimatePresence>
-        {showFeedbackModal && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center px-4 bg-black/40 backdrop-blur-sm">
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-[24px] w-full max-w-[340px] p-6 shadow-2xl relative flex flex-col items-center"
-            >
-              <button 
-                onClick={() => setShowFeedbackModal(false)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-700"
-              >
-                <X size={20} strokeWidth={2.5} />
-              </button>
-
-              <h2 className="text-[20px] font-bold text-[#1e293b] mb-1">Trade feedback</h2>
-              <p className="text-[13px] text-gray-500 mb-6">Please rate your experience below</p>
-
-              {/* 🟢 Star Rating (Click twice to clear/zero) */}
-              <div className="flex items-center gap-1.5 mb-8 w-full justify-center">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button 
-                    key={star} 
-                    // 🟢 NAYA LOGIC: Agar same star dubara dabaya toh 0 kar do, warna utne star do
-                    onClick={() => setRating(rating === star ? 0 : star)} 
-                    className="focus:outline-none transition-transform active:scale-90"
-                  >
-                    <Star 
-                      size={28} 
-                      fill={star <= rating ? "#fbbf24" : "transparent"} 
-                      className={star <= rating ? "text-[#fbbf24]" : "text-gray-300"} 
-                      strokeWidth={1.5}
-                    />
-                  </button>
-                ))}
-                <span className="text-[12px] text-gray-500 font-medium ml-3">
-                  {rating === 0 ? "No rating" : `${rating}/5 stars`}
-                </span>
-              </div>
-
-              {/* Textarea */}
-              <div className="w-full flex flex-col items-start w-full">
-                <span className="text-[13px] text-gray-500 mb-1 ml-1 font-medium">Additional feedback</span>
-                <textarea 
-                  value={feedbackText}
-                  onChange={(e) => setFeedbackText(e.target.value)}
-                  placeholder="My feedback!!"
-                  className="w-full h-24 border border-gray-200 rounded-xl p-3 text-[14px] outline-none focus:border-[#228b22] focus:ring-1 focus:ring-[#228b22] resize-none mb-6 text-gray-800 placeholder:text-gray-400"
-                ></textarea>
-              </div>
-
-              {/* Submit Button */}
-              <button 
-                onClick={handleSubmitFeedback}
-                className="w-full bg-[#228b22] hover:bg-[#1a7328] text-white font-semibold py-3 rounded-xl transition-all active:scale-95 text-[15px]"
-              >
-                Submit feedback
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </>
   );
 }

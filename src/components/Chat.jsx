@@ -2,7 +2,8 @@
 
 import React, { useEffect, useRef, useLayoutEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchInitialMessages, fetchOlderMessages } from '@/redux/chatSlice'; 
+import { useRouter } from 'next/navigation';
+import { fetchInitialMessages, fetchOlderMessages } from '@/redux/chatSlice';
 import { Users } from 'lucide-react'; // 🟢 Added Icon for the tab
 import MessageCard from './MessageCard';
 import WhiteCard from './WhiteCard';
@@ -29,17 +30,21 @@ const getDateLabel = (timestamp) => {
 
 export default function Chat() {
   const dispatch = useDispatch();
-  
+  const router = useRouter();
+
   // Redux state
-  const { 
-    activeTab, 
-    messagesData, 
-    isLoading, 
-    isFetchingOlder, 
-    hasMore, 
-    currentPage, 
-    error 
+  const {
+    activeTab,
+    messagesData,
+    isLoading,
+    isFetchingOlder,
+    hasMore,
+    currentPage,
+    error
   } = useSelector((state) => state.chat);
+
+  const userType = useSelector((state) => state.user.userData.userType);
+  const isTrialActive = userType === "premium";
 
   const scrollContainerRef = useRef(null);
   const previousScrollHeightRef = useRef(null);
@@ -178,6 +183,29 @@ export default function Chat() {
           )}
 
         </div>
+
+        {/* ── Centered "Talk to us" overlay (trial expired) — fixed, scroll won't move it ── */}
+        {!isTrialActive && (
+          <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+            <div className="bg-white/95 w-60 p-5 rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.15)] flex flex-col items-center border border-white backdrop-blur-md pointer-events-auto">
+              <div className="mb-3 drop-shadow-sm">
+                <svg width="28" height="34" viewBox="0 0 24 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7 11V7C7 4.23858 9.23858 2 12 2C14.7614 2 17 4.23858 17 7V11" stroke="#A1A1AA" strokeWidth="2.5" strokeLinecap="round"/>
+                  <rect x="4" y="11" width="16" height="13" rx="3" fill="#EAB308"/>
+                  <circle cx="12" cy="16" r="1.5" fill="#A16207"/>
+                  <path d="M11.25 16H12.75V20H11.25V16Z" fill="#A16207" />
+                </svg>
+              </div>
+              <span className="text-[15px] font-bold text-gray-900 mb-4 tracking-tight">Trial Expired</span>
+              <button
+                onClick={() => router.push('/support-chat')}
+                className="bg-[#218b32] hover:bg-[#1a7328] text-white text-[14px] font-semibold py-2.5 px-6 rounded-xl w-full transition-transform active:scale-95 shadow-sm"
+              >
+                Talk to us
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
