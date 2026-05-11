@@ -1,7 +1,8 @@
-                                                                    "use client";
-import React, { useState } from 'react';
+"use client";
+import React, { useEffect, useState } from 'react';
 import { Button } from './Button';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { updateProfile } from '@/redux/userSlice';
@@ -19,6 +20,17 @@ export const RegisterScreen = () => {
   const [isAgreed, setIsAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [resendTimer, setResendTimer] = useState(0);
+
+  useEffect(() => {
+    if (!otpSent || resendTimer <= 0) return;
+
+    const interval = setInterval(() => {
+      setResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [otpSent, resendTimer]);
 
   // --- Step 1: Send OTP ---
   const handleSendOtp = async () => {
@@ -32,6 +44,7 @@ export const RegisterScreen = () => {
       const response = await api.post('/auth/send-otp', { mobile: phoneNumber });
       if (response.data.status === true) {
         setOtpSent(true);
+        setResendTimer(60);
       } else {
         setError(response.data.message || 'Failed to send OTP.');
       }
@@ -91,6 +104,7 @@ export const RegisterScreen = () => {
     setIsLoading(true);
     try {
       await api.post('/auth/send-otp', { mobile: phoneNumber });
+      setResendTimer(60);
     } catch {
       setError('Failed to resend OTP.');
     } finally {
@@ -107,34 +121,33 @@ export const RegisterScreen = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen px-6 pt-12 bg-white max-w-md mx-auto font-sans">
+    <div className="flex flex-col h-screen px-6 pt-12 bg-white max-w-md mx-auto font-sans overflow-hidden">
+      {/* Logo Section */}
+      <div className={`flex items-center h-24 mb-8 transition-all ${otpSent ? 'justify-between' : 'justify-center'}`}>
+        {otpSent && (
+          <button
+            onClick={() => { setOtpSent(false); setOtp(['', '', '', '']); setError(''); setResendTimer(0); } }
+            className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors flex-shrink-0"
+          >
+            <span className="text-2xl text-black">{"<"}</span>
+          </button>
+        )}
+        <div className={`w-24 h-24 ${otpSent ? 'absolute left-1/2 transform -translate-x-1/2' : ''}`}>
+          <Image src="/tglogo.png" alt="Company Logo" width={96} height={96} />
+        </div>
+      </div>
 
-      {otpSent && (
-        <button
-          onClick={() => { setOtpSent(false); setOtp(['', '', '', '']); setError(''); }}
-          className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center mb-6 hover:bg-gray-50 transition-colors"
-        >
-          <span className="text-2xl text-black">{"<"}</span>
-        </button>
-      )}
-
-      <h2 className="text-[32px] font-bold text-black leading-tight mb-2">
-        {otpSent ? 'OTP Verification' : <>Welcome to <br /> TG Levels</>}
+      <h2 className="text-[32px] font-bold text-black leading-tight mb-2 mx-auto text-center">
+        Welcome to TG Levels
       </h2>
 
-      {otpSent && (
-        <p className="text-gray-500 text-sm mb-8 leading-relaxed">
-          Enter the verification code sent to +91 {phoneNumber}.
-        </p>
-      )}
-
-      {!otpSent && (
-        <div className="mt-5">
-          <PWAInstallButton variant="banner" />
-        </div>
-      )}
+      <p className="text-gray-500 text-md font-normal leading-tight mx-auto text-center">
+        Real-time stock insights at your fingertips <br />— register or log in.
+      </p>
 
       {/* Phone Number Input */}
+      {!otpSent && (
+        <>
       <div className={`flex items-center h-16 w-full rounded-xl border mt-6 ${error && !otpSent ? 'border-red-500' : 'border-gray-100'} shadow-[0px_4px_10px_rgba(0,0,0,0.1)] transition-all overflow-hidden`}>
         <select
           value={countryCode}
@@ -153,31 +166,35 @@ export const RegisterScreen = () => {
           className="flex-1 h-full px-4 bg-transparent text-black outline-none placeholder:text-gray-400 font-medium disabled:opacity-60"
         />
       </div>
+        </>
+      )}
 
       {error && !otpSent && <p className="text-red-500 text-xs mt-2 ml-1">{error}</p>}
 
       {/* OTP Fields (shown after OTP sent) */}
       {otpSent && (
         <>
-          <div className="flex justify-between gap-4 mt-8 mb-2 mx-4">
-            {otp.map((digit, i) => (
-              <input
-                key={i}
-                id={`otp-${i}`}
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={digit}
-                onChange={(e) => handleOtpChange(e.target.value, i)}
-                onKeyDown={(e) => handleKeyDown(e, i)}
+        <div className="flex justify-between gap-4 mt-8 mb-2 mx-4 min-h-[50px]">
+          {otp.map((digit, i) => (
+            <input
+              key={i}
+              id={`otp-${i}`}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              value={digit}
+              onChange={(e) => handleOtpChange(e.target.value, i)}
+              onKeyDown={(e) => handleKeyDown(e, i)}
                 className="w-14 h-14 border border-gray-200 rounded-xl text-center text-black text-2xl font-bold focus:border-[#228B22] focus:ring-1 focus:ring-[#228B22] outline-none transition-all"
               />
-            ))}
-          </div>
+          ))}
+        </div>
 
           {error && <p className="text-red-500 text-xs text-center mt-2 mb-2">{error}</p>}
 
-          <div className="flex items-center gap-2 mt-5 mb-8">
+          {/* Commented out terms and conditions checkbox */}
+
+          {/* <div className="flex items-center gap-2 mt-5 mb-8">
             <input
               type="checkbox"
               id="terms"
@@ -191,7 +208,7 @@ export const RegisterScreen = () => {
                 Terms &amp; Conditions
               </Link>
             </label>
-          </div>
+      </div> */}
         </>
       )}
 
@@ -203,8 +220,8 @@ export const RegisterScreen = () => {
         ) : (
           <Button
             onClick={handleVerify}
-            disabled={!isAgreed || isLoading}
-            className={`transition-all ${(!isAgreed || isLoading) ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+            disabled={isLoading}
+            className={`transition-all ${isLoading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
           >
             {isLoading ? 'Verifying...' : 'Verify'}
           </Button>
@@ -212,13 +229,39 @@ export const RegisterScreen = () => {
       </div>
 
       {otpSent && (
-        <p className="text-center text-sm text-gray-500 mt-auto pt-6">
-          Didn&apos;t receive code?{' '}
-          <button onClick={handleResend} className="text-[#228B22] font-bold hover:underline ml-1">
-            Resend
-          </button>
+        <p className="text-center text-sm text-gray-500 pt-6 mb-2">
+          Didn&apos;t receive OTP?{' '}
+          {resendTimer > 0 ? (
+            <span className="font-semibold text-gray-600 ml-1">
+              Resend in {resendTimer}s
+            </span>
+          ) : (
+            <button
+              onClick={handleResend}
+              disabled={isLoading}
+              className="text-[#228B22] font-bold hover:underline ml-1 disabled:opacity-50"
+            >
+              Resend
+            </button>
+          )}
         </p>
       )}
+
+      <div className="mt-auto w-full flex justify-center pb-14">
+        <Image
+          src="/sirimage.png"
+          alt="Tushar Ghone Image"
+          width={500}
+          height={500}
+          className="w-[75vw] max-w-[350px] h-auto object-contain"
+        />
+      </div>
+
+      <div className="inline-flex items-center justify-center px-5 py-2 border border-purple-500 rounded-full bg-white mb-20">
+        <p className="text-sm font-semibold text-black whitespace-nowrap">
+          Tushar Ghone SEBI Registered Research Analyst
+        </p>
+      </div>
     </div>
   );
 };
