@@ -1,4 +1,3 @@
-import { ChevronLeft } from 'lucide-react';
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setActiveTab } from '@/redux/chatSlice';
@@ -9,7 +8,6 @@ export default function Slider() {
   const dispatch = useDispatch();
 
   const tabs = [
-    { name: 'All' },
     { name: 'NFT', dot: true },
     { name: 'EQT' },
     { name: 'COM' },
@@ -17,11 +15,8 @@ export default function Slider() {
   ];
 
   return (
-    <div className="flex-none flex items-center p-1.5 overflow-x-auto border-y border-black bg-white scrollbar-hide w-full max-w-md">
-      <div className="shrink-0 px-1 flex items-center justify-center cursor-pointer">
-        <ChevronLeft size={18} strokeWidth={3} className="text-black" />
-      </div>
-      <div className="flex items-center gap-1.5 ">
+    <div className="flex-none flex items-center p-1.5 border-y border-black bg-white w-full max-w-md justify-center">
+      <div className="flex items-center justify-around gap-2 w-full">
         {tabs.map((tab) => (
           <button
             key={tab.name}
