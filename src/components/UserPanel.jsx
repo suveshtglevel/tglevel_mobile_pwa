@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 const menuItems = [
-  { id: 1, label: "Profile", icon: CircleUserRound },
+  { id: 1, label: "Profile", icon: CircleUserRound, route: "/profile" },
   { id: 2, label: "Terms & Condition", icon: FileText, route: "/terms-condition?mode=view" },
   { id: 3, label: "Policies", icon: ShieldCheck, route: "https://tglevels.com/terms-and-conditions/" },
   { id: 4, label: "Notification Settings", icon: Bell},
@@ -46,7 +46,7 @@ const UserPanel = () => {
         {/* back button */}
         <div className="flex-none flex items-center bg-white px-4 py-3 relative">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push("/chat")}
             className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm active:scale-95 transition-transform"
             aria-label="Back"
           >
