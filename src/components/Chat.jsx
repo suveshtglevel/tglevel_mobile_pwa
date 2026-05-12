@@ -9,6 +9,7 @@ import MessageCard from './MessageCard';
 import WhiteCard from './WhiteCard';
 import Header from './Header';
 import Slider from './Slider';
+import Navbar from './Navbar';
 
 const getDateLabel = (timestamp) => {
   const date = new Date(timestamp);
@@ -127,7 +128,7 @@ export default function Chat() {
         <div 
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto p-4 flex flex-col relative bg-[#e4e9f0]" 
+          className="flex-1 overflow-y-auto p-4 pb-24 flex flex-col relative bg-[#e4e9f0]" 
         >
           
           {/* Top Loader for Initial Fetch */}
@@ -206,6 +207,8 @@ export default function Chat() {
             </div>
           </div>
         )}
+
+        <Navbar />
       </div>
     </main>
   );
