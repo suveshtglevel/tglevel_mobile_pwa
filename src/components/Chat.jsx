@@ -128,7 +128,7 @@ export default function Chat() {
         <div 
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto p-4 pb-24 flex flex-col relative bg-[#e4e9f0]" 
+          className="flex-1 overflow-y-auto p-4 pb-24 flex flex-col relative bg-[url('/chatbackground.png')] bg-cover bg-center bg-no-repeat" 
         >
           
           {/* Top Loader for Initial Fetch */}
