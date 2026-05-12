@@ -116,9 +116,9 @@ export default function MessageCard({ message, showTag }) {
               </div>
 
              <div className="flex items-center gap-1 text-[11px] text-black font-medium shrink-0 ml-auto">
-                <span className="flex items-center gap-0.5">
+                {/* <span className="flex items-center gap-0.5">
                   ({message.views || 1155} <Eye size={12} strokeWidth={2.5} className="ml-0.5" />)
-                </span>
+                </span> */}
                 <span className="ml-0.5">{formattedTime}</span>
                 <CheckCheck size={14} className="text-blue-500 stroke-[2.5px] ml-0.5" />
               </div>

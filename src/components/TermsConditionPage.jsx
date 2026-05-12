@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Shield, Info, Database } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Shield, Info, Database, ChevronLeft } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function TermsConditionPage() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isViewMode = searchParams.get('mode') === 'view';
 
   useEffect(() => {
     const handler = (e) => {
@@ -25,10 +27,10 @@ export default function TermsConditionPage() {
       const { outcome } = await deferredPrompt.userChoice;
       setDeferredPrompt(null);
       if (outcome === "accepted") {
-        router.push("/chat");
+        router.push("/user-panel");
       }
     } else {
-      router.push("/chat");
+      router.push("/user-panel");
     }
   };
 
@@ -37,7 +39,19 @@ export default function TermsConditionPage() {
       <div className="w-full max-w-[390px]">
 
         {/* Header */}
-        <div className="bg-white h-[74px] shadow-md flex items-center justify-center sticky top-0 z-50">
+        <div className="bg-white h-[74px] shadow-md flex items-center justify-center sticky top-0 z-50 relative">
+          
+          {/* Back button — only in view mode */}
+          {isViewMode && (
+            <button
+              onClick={() => router.back()}
+              className="absolute left-4 flex items-center gap-1 active:scale-95 transition-transform"
+            >
+              <ChevronLeft size={20} strokeWidth={2.5} className="text-black" />
+              <span className="text-[15px] font-medium text-black">Back</span>
+            </button>
+          )}
+
           <h1 className="text-[22px] font-bold text-black">
             Terms & Conditions
           </h1>
@@ -87,7 +101,7 @@ export default function TermsConditionPage() {
                 Investments in the market are subject to market risk. Please
                 read all related documents carefully before investing.
                 Registration granted by SEBI, Enlistment as RA with Exchange
-                and certification from NIr M in no way guarantee performance of
+                and certification from NISM in no way guarantee performance of
                 the intermediary or provide any assurance of returns to
                 investors.
               </p>
@@ -129,7 +143,7 @@ export default function TermsConditionPage() {
             </div>
           </section>
 
-          {/* ✅ Agreement confirmation at bottom */}
+          {/* Agreement confirmation */}
           <div className="flex items-center gap-3 p-4 rounded-[16px] bg-[#DDF1E7]">
             <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 bg-[#1E9B22]">
               <span className="text-white text-xs font-bold">✓</span>
@@ -146,12 +160,20 @@ export default function TermsConditionPage() {
 
         {/* Bottom Fixed Button */}
         <div className="fixed bottom-0 left-0 right-0 flex justify-center">
-          <div className="w-full max-w-[390px] bg-white rounded-t-[28px] p-6 shadow-2xl">
+          <div className="w-full max-w-[390px] bg-white rounded-t-[28px] p-6 shadow-2xl"
+            style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}  
+          >
+            {/* ← safe-area-inset-bottom for PWA/iPhone notch */}
             <button
-              className="w-full h-[64px] rounded-full text-white text-[20px] font-semibold transition-all bg-[#1E9B22]"
-              onClick={handleClick}
+              disabled={isViewMode}
+              className={`w-full h-[64px] rounded-full text-white text-[20px] font-semibold transition-all
+                ${isViewMode
+                  ? 'bg-gray-300 cursor-not-allowed'
+                  : 'bg-[#1E9B22]'
+                }`}
+              onClick={!isViewMode ? handleClick : undefined}
             >
-              Confirm & Continue →
+              {isViewMode ? 'Read Only' : 'Confirm & Continue →'}
             </button>
           </div>
         </div>

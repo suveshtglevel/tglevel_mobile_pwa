@@ -16,15 +16,16 @@ import {
 
 const menuItems = [
   { id: 1, label: "Profile", icon: CircleUserRound },
-  { id: 2, label: "Terms & Condition", icon: FileText },
-  { id: 3, label: "Policies", icon: ShieldCheck },
-  { id: 4, label: "Notification Settings", icon: Bell },
+  { id: 2, label: "Terms & Condition", icon: FileText, route: "/terms-condition?mode=view" },
+  { id: 3, label: "Policies", icon: ShieldCheck, route: "/terms-condition?mode=view" },
+  { id: 4, label: "Notification Settings", icon: Bell},
   { id: 5, label: "Contact", icon: Phone },
 ];
 
-function MenuItem({ icon: Icon, label }) {
+//Adding Navigation Logic
+function MenuItem({ icon: Icon, label, onClick }) {
   return (
-    <button className="w-full bg-white px-1 py-4 flex items-center gap-3 text-left active:scale-[0.99] transition-transform">
+    <button onClick={onClick} className="w-full bg-white px-1 py-4 flex items-center gap-3 text-left active:scale-[0.99] transition-transform">
       <div className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center shrink-0">
         <Icon size={20} strokeWidth={1.9} className="text-black" />
       </div>
@@ -37,6 +38,8 @@ function MenuItem({ icon: Icon, label }) {
 const UserPanel = () => {
   const router = useRouter();
 
+
+ 
   return (
     <main className="w-full h-[100dvh] bg-white flex justify-center overflow-hidden">
       <div className="flex flex-col h-full w-full max-w-md bg-white shadow-xl relative overflow-hidden">
@@ -87,7 +90,7 @@ const UserPanel = () => {
             <div className="bg-white rounded-2xl overflow-hidden">
               {menuItems.map((item, index) => (
                 <div key={item.id} className={index !== menuItems.length - 1 ? "border-b border-gray-200" : ""}>
-                  <MenuItem icon={item.icon} label={item.label} />
+                  <MenuItem icon={item.icon} label={item.label} onClick={() => item.route && router.push(item.route)}/>
                 </div>
               ))}
             </div>
