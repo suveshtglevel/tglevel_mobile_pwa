@@ -17,7 +17,7 @@ import {
 const menuItems = [
   { id: 1, label: "Profile", icon: CircleUserRound },
   { id: 2, label: "Terms & Condition", icon: FileText, route: "/terms-condition?mode=view" },
-  { id: 3, label: "Policies", icon: ShieldCheck, route: "/terms-condition?mode=view" },
+  { id: 3, label: "Policies", icon: ShieldCheck, route: "https://tglevels.com/terms-and-conditions/" },
   { id: 4, label: "Notification Settings", icon: Bell},
   { id: 5, label: "Contact", icon: Phone },
 ];
