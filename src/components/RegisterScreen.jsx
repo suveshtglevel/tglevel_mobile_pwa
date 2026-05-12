@@ -1,13 +1,11 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { Button } from './Button';
-import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { updateProfile } from '@/redux/userSlice';
 import { api } from '@/utils/apiHelper';
-import PWAInstallButton from './PWAInstallButton';
 
 export const RegisterScreen = () => {
   const router = useRouter();
@@ -17,22 +15,18 @@ export const RegisterScreen = () => {
   const [countryCode, setCountryCode] = useState('+91');
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState(['', '', '', '']);
-  const [isAgreed, setIsAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [resendTimer, setResendTimer] = useState(0);
 
   useEffect(() => {
     if (!otpSent || resendTimer <= 0) return;
-
     const interval = setInterval(() => {
       setResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
-
     return () => clearInterval(interval);
   }, [otpSent, resendTimer]);
 
-  // --- Step 1: Send OTP ---
   const handleSendOtp = async () => {
     const regex = /^[6789]\d{9}$/;
     if (!phoneNumber) { setError('Please enter mobile number'); return; }
@@ -55,9 +49,7 @@ export const RegisterScreen = () => {
     }
   };
 
-  // --- Step 2: Verify OTP ---
   const handleVerify = async () => {
-    if (!isAgreed) return;
     const enteredOtp = otp.join('');
     if (enteredOtp.length < 4) { setError('Please enter the complete 4-digit code.'); return; }
 
@@ -71,8 +63,14 @@ export const RegisterScreen = () => {
 
       if (response.data.status === true) {
         localStorage.setItem('auth_token', response.data.token);
-        dispatch(updateProfile({ isNewUser: false, hasCompletedOnboarding: true }));
-        router.push('/chat');
+
+        if (response.data.is_new_user === true) {
+          dispatch(updateProfile({ isNewUser: true, hasCompletedOnboarding: false }));
+        } else {
+          dispatch(updateProfile({ isNewUser: false, hasCompletedOnboarding: true }));
+        }
+
+        router.push('/terms-condition'); // ✅ fixed
       } else {
         setError('Invalid OTP. Please try again.');
       }
@@ -126,7 +124,7 @@ export const RegisterScreen = () => {
       <div className={`flex items-center h-24 mb-8 transition-all ${otpSent ? 'justify-between' : 'justify-center'}`}>
         {otpSent && (
           <button
-            onClick={() => { setOtpSent(false); setOtp(['', '', '', '']); setError(''); setResendTimer(0); } }
+            onClick={() => { setOtpSent(false); setOtp(['', '', '', '']); setError(''); setResendTimer(0); }}
             className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors flex-shrink-0"
           >
             <span className="text-2xl text-black">{"<"}</span>
@@ -145,70 +143,47 @@ export const RegisterScreen = () => {
         Real-time stock insights at your fingertips <br />— register or log in.
       </p>
 
-      {/* Phone Number Input */}
+      {/* Phone Input */}
       {!otpSent && (
-        <>
-      <div className={`flex items-center h-16 w-full rounded-xl border mt-6 ${error && !otpSent ? 'border-red-500' : 'border-gray-100'} shadow-[0px_4px_10px_rgba(0,0,0,0.1)] transition-all overflow-hidden`}>
-        <select
-          value={countryCode}
-          onChange={(e) => setCountryCode(e.target.value)}
-          disabled={otpSent}
-          className="h-full px-1 bg-transparent text-gray-700 font-medium outline-none border-r border-gray-100 cursor-pointer disabled:opacity-60"
-        >
-          <option value="+91" className="text-black">+91 (IN)</option>
-        </select>
-        <input
-          type="tel"
-          value={phoneNumber}
-          onChange={handlePhoneChange}
-          disabled={otpSent}
-          placeholder="Enter your mobile number"
-          className="flex-1 h-full px-4 bg-transparent text-black outline-none placeholder:text-gray-400 font-medium disabled:opacity-60"
-        />
-      </div>
-        </>
+        <div className={`flex items-center h-16 w-full rounded-xl border mt-6 ${error ? 'border-red-500' : 'border-gray-100'} shadow-[0px_4px_10px_rgba(0,0,0,0.1)] transition-all overflow-hidden`}>
+          <select
+            value={countryCode}
+            onChange={(e) => setCountryCode(e.target.value)}
+            className="h-full px-1 bg-transparent text-gray-700 font-medium outline-none border-r border-gray-100 cursor-pointer"
+          >
+            <option value="+91" className="text-black">+91 (IN)</option>
+          </select>
+          <input
+            type="tel"
+            value={phoneNumber}
+            onChange={handlePhoneChange}
+            placeholder="Enter your mobile number"
+            className="flex-1 h-full px-4 bg-transparent text-black outline-none placeholder:text-gray-400 font-medium"
+          />
+        </div>
       )}
 
       {error && !otpSent && <p className="text-red-500 text-xs mt-2 ml-1">{error}</p>}
 
-      {/* OTP Fields (shown after OTP sent) */}
+      {/* OTP Fields */}
       {otpSent && (
         <>
-        <div className="flex justify-between gap-4 mt-8 mb-2 mx-4 min-h-[50px]">
-          {otp.map((digit, i) => (
-            <input
-              key={i}
-              id={`otp-${i}`}
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={digit}
-              onChange={(e) => handleOtpChange(e.target.value, i)}
-              onKeyDown={(e) => handleKeyDown(e, i)}
+          <div className="flex justify-between gap-4 mt-8 mb-2 mx-4 min-h-[50px]">
+            {otp.map((digit, i) => (
+              <input
+                key={i}
+                id={`otp-${i}`}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={digit}
+                onChange={(e) => handleOtpChange(e.target.value, i)}
+                onKeyDown={(e) => handleKeyDown(e, i)}
                 className="w-14 h-14 border border-gray-200 rounded-xl text-center text-black text-2xl font-bold focus:border-[#228B22] focus:ring-1 focus:ring-[#228B22] outline-none transition-all"
               />
-          ))}
-        </div>
-
+            ))}
+          </div>
           {error && <p className="text-red-500 text-xs text-center mt-2 mb-2">{error}</p>}
-
-          {/* Commented out terms and conditions checkbox */}
-
-          {/* <div className="flex items-center gap-2 mt-5 mb-8">
-            <input
-              type="checkbox"
-              id="terms"
-              className="w-4 h-4 accent-[#228B22] cursor-pointer"
-              checked={isAgreed}
-              onChange={(e) => setIsAgreed(e.target.checked)}
-            />
-            <label htmlFor="terms" className="text-xs text-gray-900 cursor-pointer">
-              I Agree To The{' '}
-              <Link href="/TermsCondition" className="text-blue-500 underline">
-                Terms &amp; Conditions
-              </Link>
-            </label>
-      </div> */}
         </>
       )}
 
@@ -232,9 +207,7 @@ export const RegisterScreen = () => {
         <p className="text-center text-sm text-gray-500 pt-6 mb-2">
           Didn&apos;t receive OTP?{' '}
           {resendTimer > 0 ? (
-            <span className="font-semibold text-gray-600 ml-1">
-              Resend in {resendTimer}s
-            </span>
+            <span className="font-semibold text-gray-600 ml-1">Resend in {resendTimer}s</span>
           ) : (
             <button
               onClick={handleResend}
@@ -265,3 +238,4 @@ export const RegisterScreen = () => {
     </div>
   );
 };
+
