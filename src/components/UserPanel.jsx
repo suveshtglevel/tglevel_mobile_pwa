@@ -7,22 +7,24 @@ import {
   Camera,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   CircleUserRound,
   FileText,
   Bell,
   Phone,
   ShieldCheck,
+  Mail,
 } from "lucide-react";
 
 const menuItems = [
   { id: 1, label: "Profile", icon: CircleUserRound, route: "/profile" },
   { id: 2, label: "Terms & Condition", icon: FileText, route: "/terms-condition?mode=view" },
   { id: 3, label: "Policies", icon: ShieldCheck, route: "https://tglevels.com/terms-and-conditions/" },
-  { id: 4, label: "Notification Settings", icon: Bell},
-  { id: 5, label: "Contact", icon: Phone },
+  { id: 4, label: "Notification Settings", icon: Bell, route: "/notification-settings" },
+  { id: 5, label: "Contact", icon: Phone, dropdown: true },
 ];
 
-//Adding Navigation Logic
 function MenuItem({ icon: Icon, label, onClick }) {
   return (
     <button onClick={onClick} className="w-full bg-white px-1 py-4 flex items-center gap-3 text-left active:scale-[0.99] transition-transform">
@@ -37,9 +39,8 @@ function MenuItem({ icon: Icon, label, onClick }) {
 
 const UserPanel = () => {
   const router = useRouter();
+  const [contactOpen, setContactOpen] = useState(false);
 
-
- 
   return (
     <main className="w-full h-[100dvh] bg-white flex justify-center overflow-hidden">
       <div className="flex flex-col h-full w-full max-w-md bg-white shadow-xl relative overflow-hidden">
@@ -86,15 +87,96 @@ const UserPanel = () => {
             <p className="text-[13px] text-gray-400 mt-1">jamespatrick@gmail.com</p>
           </div>
 
+          {/* Menu */}
           <div className="mt-8">
             <div className="bg-white rounded-2xl overflow-hidden">
               {menuItems.map((item, index) => (
                 <div key={item.id} className={index !== menuItems.length - 1 ? "border-b border-gray-200" : ""}>
-                  <MenuItem icon={item.icon} label={item.label} onClick={() => item.route && router.push(item.route)}/>
+
+                  {item.dropdown ? (
+                    // ← Contact dropdown
+                    <div>
+                      <button
+                        onClick={() => setContactOpen(!contactOpen)}
+                        className="w-full bg-white px-1 py-4 flex items-center gap-3 text-left active:scale-[0.99] transition-transform"
+                      >
+                        <div className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center shrink-0">
+                          <Phone size={20} strokeWidth={1.9} className="text-black" />
+                        </div>
+                        <span className="flex-1 text-[15px] text-black">Contact</span>
+                        {contactOpen
+                          ? <ChevronUp size={22} className="text-gray-700 shrink-0" strokeWidth={2.5} />
+                          : <ChevronDown size={22} className="text-gray-700 shrink-0" strokeWidth={2.5} />
+                        }
+                      </button>
+
+                      {/* Dropdown content */}
+                      {contactOpen && (
+                        <div className="mx-1 mb-3 bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100">
+
+                          {/* Talk to us */}
+                          <button
+                            onClick={() => router.push('/support-chat')}
+                            className="w-full flex items-center gap-3 px-4 py-3 border-b border-gray-100 active:bg-gray-50"
+                          >
+                            <Image
+                              src="/newCustomer.png"
+                              alt="Support"
+                              width={44}
+                              height={44}
+                              className="rounded-full object-cover border border-gray-200"
+                            />
+                            <div className="flex-1 text-left">
+                              <p className="text-[15px] font-semibold text-black">Talk To Us</p>
+                              <p className="text-[12px] text-gray-400">Connect With An Agent Instantly</p>
+                            </div>
+                            <div className="w-9 h-9 rounded-full bg-[#228B22] flex items-center justify-center shrink-0">
+                              <ChevronRight size={18} className="text-white" strokeWidth={2.5} />
+                            </div>
+                          </button>
+
+                          {/* Phone numbers */}
+                          <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
+                            <Phone size={18} className="text-gray-500 shrink-0" strokeWidth={1.9} />
+                            <div className="flex gap-2">
+                              <a href="tel:7738756385" className="text-[14px] text-blue-500">7738756385</a>
+                              <span className="text-gray-400">,</span>
+                              <a href="tel:7738063455" className="text-[14px] text-blue-500">7738063455</a>
+                            </div>
+                          </div>
+
+                          {/* Email */}
+                          <div className="flex items-center gap-3 px-4 py-3">
+                            <Mail size={18} className="text-gray-500 shrink-0" strokeWidth={1.9} />
+                            <a href="mailto:companyname@tglevels.com" className="text-[14px] text-blue-500">
+                              companyname@tglevels.com
+                            </a>
+                          </div>
+
+                        </div>
+                      )}
+                    </div>
+
+                  ) : (
+                    <MenuItem
+                      icon={item.icon}
+                      label={item.label}
+                      onClick={() => {
+                        if (!item.route) return;
+                        if (item.route.startsWith('http')) {
+                          window.open(item.route, '_blank');
+                        } else {
+                          router.push(item.route);
+                        }
+                      }}
+                    />
+                  )}
+
                 </div>
               ))}
             </div>
           </div>
+
         </div>
       </div>
     </main>

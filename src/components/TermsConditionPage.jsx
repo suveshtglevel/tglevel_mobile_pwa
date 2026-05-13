@@ -27,10 +27,10 @@ export default function TermsConditionPage() {
       const { outcome } = await deferredPrompt.userChoice;
       setDeferredPrompt(null);
       if (outcome === "accepted") {
-        router.push("/user-panel");
+        router.push("/chat");
       }
     } else {
-      router.push("/user-panel");
+      router.push("/terms-condition");
     }
   };
 
