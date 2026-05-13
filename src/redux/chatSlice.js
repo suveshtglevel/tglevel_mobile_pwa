@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { fetchMessagesFromApi } from '@/utils/chatMessageApi';
+import { fetchMessagesFromApi } from '../utils/chatMessageApi';
 
 // Initial Tab Load (Page 1)
 export const fetchInitialMessages = createAsyncThunk(

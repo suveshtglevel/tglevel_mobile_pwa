@@ -7,7 +7,7 @@ import {
   Camera,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
+     ChevronDown,
   ChevronUp,
   CircleUserRound,
   FileText,
