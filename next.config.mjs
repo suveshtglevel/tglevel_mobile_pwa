@@ -1,21 +1,3 @@
-// import withPWAInit from "@ducanh2912/next-pwa";
-
-// const withPWA = withPWAInit({
-//   dest: "public",
-//   cacheOnFrontEndNav: true,
-//   aggressiveFrontEndNavCaching: true,
-//   reloadOnOnline: true,
-//   disable: process.env.NODE_ENV === "development",
-//   workboxOptions: {
-//     disableDevLogs: true,
-//   },
-// });
-
-// /** @type {import('next').NextConfig} */
-// const nextConfig = {};
-
-// export default withPWA(nextConfig);
-
 import withPWAInit from "@ducanh2912/next-pwa";
 
 const withPWA = withPWAInit({
@@ -31,6 +13,20 @@ const withPWA = withPWAInit({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'ra.tglevels.in',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'app.tglevels.in',
+        pathname: '/**',
+      },
+    ],
+  },
   async rewrites() {
     return [
       {

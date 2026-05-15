@@ -1,42 +1,54 @@
-const RESEARCH_ANALYSIS_TEXT = `*✅*RESEARCH ANALYSIS✅*
-
-*BUY NIFTY 13 APR 23650 CE*
-
-*Entry Above =* 168
-*SL =* 153
-*Target 1 =* 183
-*Target 2 =* 198
-
-*Disclaimer*: Investments in the market are subject to market risk. Please read all related documents carefully before investing. Registration granted by SEBI, Enlistment as RA with Exchange and certification from NISM in no way guarantee performance of the intermediary or provide any assurance of returns to investors.
-*Our Customer Care:-*99871 96114
-*Rationale*=https://bit.ly/3PYI0J7
-*Confidence Level Trade*
-*🟡 Medium probability*`;
-
-const buildDummyMessages = (category) => {
-  const tag = category === 'All' ? 'NFT' : category;
-  const now = Date.now();
-  return [
-    {
-      id: 123,
-      type: 'premium',
-      tag,
-      views: 1155,
-      timestamp: new Date(now - 1000 * 60 * 60).toISOString(),
-      content: { text: RESEARCH_ANALYSIS_TEXT },
-    },
-    {
-      id: 124,
-      type: 'premium',
-      tag,
-      views: 980,
-      timestamp: new Date(now - 1000 * 60 * 30).toISOString(),
-      content: { text: RESEARCH_ANALYSIS_TEXT },
-    },
-  ];
+const communityMap = {
+  NFT: 7,
+  EQT: 9,
+  COM: 11,
+  SWG: 13,
 };
 
-export const fetchMessagesFromApi = async (category, page = 1) => {
-  if (page === 1) return { data: buildDummyMessages(category), hasMore: false };
-  return { data: [], hasMore: false };
+const transformMessage = (msg) => {
+  const imageMatch = msg.message?.match(/<img[^>]+src=["']([^"']+)["']/i);
+  const imageUrl = imageMatch ? imageMatch[1] : null;
+
+  let plainText = msg.message
+    ?.replace(/<img[^>]*>/gi, '')
+    ?.replace(/<br\s*\/?>/gi, '\n')
+    ?.replace(/<[^>]+>/g, '')
+    ?.replace(/&nbsp;/g, ' ')
+    ?.replace(/&amp;/g, '&')
+    ?.trim();
+
+  if (!plainText) plainText = null;
+
+  return {
+    id: msg.id,
+    type: 'premium',
+    tag: msg.message_type,
+    views: msg.views,
+    timestamp: msg.message_time
+      ? new Date(Number(msg.message_time) * 1000).toISOString()
+      : new Date().toISOString(),
+    content: {
+      text: plainText || null,
+      image: imageUrl || null,
+    },
+  };
+};
+
+export const fetchMessagesFromApi = async (category) => {
+  const communityId = communityMap[category];
+
+  if (!communityId) return { data: [], hasMore: false };
+
+  const response = await fetch(`/api/messages?community_id=${communityId}`);
+  const json = await response.json();
+  console.log(json);
+
+  if (json.status !== 'success') {
+    throw new Error(json.message || 'Failed to fetch messages');
+  }
+
+  const raw = json.data || [];
+  const data = raw.map(transformMessage);
+
+  return { data, hasMore: false };
 };

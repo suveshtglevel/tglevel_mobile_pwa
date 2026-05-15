@@ -71,10 +71,10 @@ export default function MessageCard({ message, showTag }) {
             </svg>
           </div>
 
-          {/* 🟢 Golden Premium Badge at Top Right */}
+          {/* 🟢 Golden Premium Badge at Top Right
           <div className="absolute top-[-1px] right-[0.5px] bg-linear-to-br from-[#e1c57e] via-[#f7ebba] to-[#a68a49] px-7 py-1 rounded-bl-[16px] rounded-tr-[18px] rounded-tl-[16px] shadow-sm z-20 border border-white">
             <span className="text-[14px] font-semibold text-black tracking-wide">Premium</span>
-          </div>
+          </div> */}
 
          {/* --- DYNAMIC BLUR WRAPPER --- */}
           <div className={`relative z-10 transition-all duration-300 ${!isPremium ? 'blur-[4px] opacity-90 pointer-events-none select-none' : ''}`}>

@@ -19,20 +19,16 @@ export default function TermsConditionPage() {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  const handleClick = async () => {
-    localStorage.setItem('terms_accepted', 'true');
+const handleClick = async () => {
+  localStorage.setItem('terms_accepted', 'true');
 
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      setDeferredPrompt(null);
-      if (outcome === "accepted") {
-        router.push("/chat");
-      }
-    } else {
-      router.push("/terms-condition");
-    }
-  };
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    setDeferredPrompt(null);
+  }
+  router.push("/chat");
+};
 
   return (
     <div className="min-h-screen bg-[#F3F3F7] flex justify-center">
