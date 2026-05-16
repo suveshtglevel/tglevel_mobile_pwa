@@ -5,19 +5,39 @@ const communityMap = {
   SWG: 13,
 };
 
+const CRM_LINKS = {
+  'tglevels://CustomerOffer':     'I WANT TO KNOW MORE ABOUT ₹11,999',
+  'tglevels://CustomerEnroll':    'I WANT TO ENROLL IN STUDENT GROUP',
+  'tglevels://CustomerInterest':  'I AM INTERESTED IN NIFTY LEVELS',
+  'tglevels://CustomerEOffer':    'I WANT TO KNOW ABOUT EQUITY ₹9,999',
+  'tglevels://CustomerEEnroll':   'I WANT TO ENROLL IN EQUITY GROUP',
+  'tglevels://CustomerEInterest': 'I AM INTERESTED IN EQUITY OPTION',
+  'tglevels://CustomerCInterest': 'I AM INTERESTED IN COMMODITY',
+  'tglevels://CustomerCEnroll':   'I WANT TO ENROLL IN COMMODITY GROUP',
+  'tglevels://CustomerDiscount':  'I WANT DISCOUNTED PRICE',
+  'tglevels://CustomerSupport':   'OPEN SUPPORT CHAT',
+  'tglevels://customerIOption':   'I WANT TO KNOW MORE ABOUT OPTION',
+};
+
 const transformMessage = (msg) => {
-  const imageMatch = msg.message?.match(/<img[^>]+src=["']([^"']+)["']/i);
+  const rawMessage = msg.encoded_message || msg.message;
+
+  const imageMatch = rawMessage?.match(/<img[^>]+src=["']([^"']+)["']/i);
   const imageUrl = imageMatch ? imageMatch[1] : null;
 
-  let plainText = msg.message
+  let htmlText = rawMessage
     ?.replace(/<img[^>]*>/gi, '')
-    ?.replace(/<br\s*\/?>/gi, '\n')
-    ?.replace(/<[^>]+>/g, '')
-    ?.replace(/&nbsp;/g, ' ')
-    ?.replace(/&amp;/g, '&')
+    ?.replace(/<span[^>]*>﻿<\/span>/gi, '')
     ?.trim();
 
-  if (!plainText) plainText = null;
+  if (htmlText) {
+    Object.entries(CRM_LINKS).forEach(([key, value]) => {
+      const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      htmlText = htmlText.replace(new RegExp(escapedKey, 'g'), value);
+    });
+  }
+
+  if (!htmlText) htmlText = null;
 
   return {
     id: msg.id,
@@ -28,18 +48,18 @@ const transformMessage = (msg) => {
       ? new Date(Number(msg.message_time) * 1000).toISOString()
       : new Date().toISOString(),
     content: {
-      text: plainText || null,
+      text: htmlText || null,
       image: imageUrl || null,
     },
   };
 };
 
+// Initial load — gets all today's messages
 export const fetchMessagesFromApi = async (category) => {
   const communityId = communityMap[category];
-
   if (!communityId) return { data: [], hasMore: false };
 
-  const response = await fetch(`/api/messages?community_id=${communityId}`);
+  const response = await fetch(`/api/trades/messages?community_id=${communityId}`);
   const json = await response.json();
   console.log(json);
 
@@ -47,8 +67,22 @@ export const fetchMessagesFromApi = async (category) => {
     throw new Error(json.message || 'Failed to fetch messages');
   }
 
-  const raw = json.data || [];
-  const data = raw.map(transformMessage);
-
+  const data = (json.data || []).map(transformMessage);
   return { data, hasMore: false };
+};
+
+// ✅ Poll — gets only new messages after last id
+export const fetchNewMessagesFromApi = async (category, afterId) => {
+  const communityId = communityMap[category];
+  if (!communityId || !afterId) return { data: [] };
+
+  const response = await fetch(
+    `/api/trades/new-messages?community_id=${communityId}&after_id=${afterId}`
+  );
+  const json = await response.json();
+
+  if (json.status !== 'success') return { data: [] };
+
+  const data = (json.data || []).map(transformMessage);
+  return { data };
 };
