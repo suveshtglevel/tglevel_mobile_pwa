@@ -24,3 +24,75 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Rainbow ring for support icon (moved from src/styles/globals.css) */
+@keyframes rainbow-cycle {
+  0% {
+    opacity: 0;
+  }
+
+  83% {
+    opacity: 0;
+  }
+
+  84% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.rainbow-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100% + 12px);
+  height: calc(100% + 12px);
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg, #ff6b6b, #f6d365, #6bffb2, #6bd1ff, #d36bff, #ff6b6b);
+  /* rotate continuously; toggle visibility on a 30s cycle (visible 10s) */
+  animation: rainbow-rotate 30s linear infinite, rainbow-visibility 30s linear infinite;
+  opacity: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.rainbow-ring::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: inherit;
+  background: var(--background);
+}
+
+@keyframes rainbow-rotate {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Show the ring for ~10s then hide for ~20s (30s total cycle).
+   Smooth fade in/out so transitions are not abrupt. */
+@keyframes rainbow-visibility {
+  /* start hidden, fade in over ~1.5s (5% of 30s) */
+  0% { opacity: 0; }
+  5% { opacity: 1; }
+
+  /* stay visible until near the end of the visible window */
+  28% { opacity: 1; }
+
+  /* fade out over ~1.6s (28% -> 33.333% of 30s) */
+  33.333% { opacity: 0; }
+
+  /* remain hidden for the rest of the 30s cycle */
+  100% { opacity: 0; }
+}
+
+/* Respect user reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .rainbow-ring,
+  .rainbow-ring::after {
+    animation: none;
+  }
+}

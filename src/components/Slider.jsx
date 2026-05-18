@@ -123,7 +123,7 @@ export default function Slider() {
   };
 
   return (
-    <div className="flex-none flex items-center p-1.5 border-y border-black bg-white w-full max-w-md justify-center">
+    <div className="flex-none flex items-center p-1.5 px-4 border-y border-black bg-white w-full max-w-md justify-center">
       <div className="flex items-center justify-around gap-2 w-full">
         {TAB_NAMES.map((name) => (
           <button

@@ -52,7 +52,7 @@ export default function WhiteCard({ message }) {
 
   return (
     <>
-      <div className="mt-auto mb-4 ml-2 flex flex-col items-start w-fit max-w-[94%] animate-in fade-in slide-in-from-left-2 duration-300">
+      <div className="mt-auto mb-4 ml-2 flex flex-col items-start w-fit max-w-[93%] animate-in fade-in slide-in-from-left-2 duration-300">
         <div className="relative bg-white text-[#111827] p-3 rounded-[18px] rounded-bl-none border-[1.5px] border-gray-200 shadow-sm">
           
           {/* Tail */}

@@ -37,15 +37,15 @@ export default function Header() {
   };
 
   return (
-    <div className="relative flex-none flex items-center w-full max-w-md h-13.25 bg-white border-b border-gray-200 z-50">
+    <div className="relative flex-none flex items-center px-4 w-full max-w-md h-13.25 bg-white border-b border-gray-200 z-50">
 
       {/* LEFT LOGO */}
       <div className="shrink-0">
         <Image
           src="/tglogo.png"
           alt="Logo"
-          width={42}
-          height={42}
+          width={40}
+          height={40}
           priority
         />
       </div>
@@ -58,9 +58,9 @@ export default function Header() {
           tabIndex={0}
           className={`
             flex items-center justify-between
-            h-10
-            px-4
-            rounded-2xl
+            h-8
+            px-2
+            rounded-xl
             border-2
             shadow-sm
             bg-white
@@ -156,8 +156,8 @@ export default function Header() {
           <Image
             src="/chatbell.png"
             alt="Notifications"
-            width={28}
-            height={28}
+            width={40}
+            height={40}
             className="object-contain"
           />
 
