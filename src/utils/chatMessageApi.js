@@ -1,4 +1,4 @@
-const communityMap = {
+export const communityMap = {
   NFT: 7,
   EQT: 9,
   COM: 11,
