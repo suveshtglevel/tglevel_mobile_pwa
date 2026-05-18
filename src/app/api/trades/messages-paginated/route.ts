@@ -1,4 +1,4 @@
-
+// app/api/trades/messages-paginated/route.ts
 import { proxyToProduction, getSession } from '@/lib/tglevels';
 
 export async function GET(request: Request) {
@@ -8,20 +8,14 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const communityId = searchParams.get('community_id');
-  const page = searchParams.get('page') || '1';
-  const limit = searchParams.get('limit') || '10';
-
-  if (!communityId) {
-    return Response.json({ status: 'error', message: 'community_id is required' }, { status: 400 });
-  }
+  const params = new URLSearchParams();
+  params.set('community_id', searchParams.get('community_id') || '0');
+  if (searchParams.get('after_id')) params.set('after_id', searchParams.get('after_id')!);
+  if (searchParams.get('last_id')) params.set('last_id', searchParams.get('last_id')!);
 
   const { res } = await proxyToProduction(
-    `/nifty/get_messages?community_id=${communityId}&page=${page}&limit=${limit}`,
-    {
-      method: 'GET',
-      sessionCookie: session,
-    }
+    `/nifty/get_messages0?${params}`,
+    { sessionCookie: session }
   );
 
   const data = await res.json();

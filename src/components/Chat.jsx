@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useLayoutEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
-import { fetchInitialMessages } from '@/redux/chatSlice';
+import { fetchInitialMessages, fetchOlderMessages } from '@/redux/chatSlice';
 import { Users } from 'lucide-react';
 import MessageCard from './MessageCard';
 import WhiteCard from './WhiteCard';
@@ -33,39 +33,83 @@ export default function Chat() {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  const { activeTab, messagesData, isLoading, error } = useSelector((state) => state.chat);
+  const { activeTab, messagesData, isLoading, isLoadingMore, hasMoreOlder, error } = useSelector((state) => state.chat);
   const userType = useSelector((state) => state.user.userData.userType);
   const isTrialActive = userType === 'premium';
 
   const scrollContainerRef = useRef(null);
+  const isFetchingOlderRef = useRef(false);
+  const preserveScrollRef = useRef(false);
+  const previousScrollHeightRef = useRef(0);
+  const didInitialScrollRef = useRef(false);
   const [isTradersTabOpen, setIsTradersTabOpen] = useState(true);
   const totalTraders = 29795;
+  const topThreshold = 50;
 
-  // Fetch on tab change
-  // useEffect(() => {
-  //   const promise = dispatch(fetchInitialMessages(activeTab));
-  //   return () => { if (promise.abort) promise.abort(); };
-  // }, [activeTab, dispatch]);
+  useEffect(() => {
+    didInitialScrollRef.current = false;
+  }, [activeTab]);
 
-//   useEffect(() => {
-//   dispatch(fetchInitialMessages(activeTab));
-// }, [activeTab, dispatch]);
+  useEffect(() => {
+    const promise = dispatch(fetchInitialMessages(activeTab));
 
-// Poll every 30 seconds
-useEffect(() => {
-  const interval = setInterval(() => {
-    dispatch(fetchInitialMessages(activeTab));
-  }, 30000);
+    return () => {
+      if (promise?.abort) {
+        promise.abort();
+      }
+    };
+  }, [activeTab, dispatch]);
 
-  return () => clearInterval(interval); // cleanup on tab change
-}, [activeTab, dispatch]);
+  const requestOlderMessages = () => {
+    const container = scrollContainerRef.current;
 
-  // Scroll to bottom after messages load
-  useLayoutEffect(() => {
-    if (!isLoading && scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    if (!container || isLoadingMore || !hasMoreOlder || isFetchingOlderRef.current) {
+      return;
     }
-  }, [isLoading, messagesData.length]);
+
+    if (container.scrollTop > topThreshold) {
+      return;
+    }
+
+    previousScrollHeightRef.current = container.scrollHeight;
+    preserveScrollRef.current = true;
+    isFetchingOlderRef.current = true;
+    dispatch(fetchOlderMessages(activeTab)).finally(() => {
+      isFetchingOlderRef.current = false;
+    });
+  };
+
+  const handleScroll = () => {
+    const container = scrollContainerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    if (container.scrollTop <= topThreshold && !isLoading) {
+      requestOlderMessages();
+    }
+  };
+
+  useLayoutEffect(() => {
+    const container = scrollContainerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    if (preserveScrollRef.current && !isLoadingMore) {
+      container.scrollTop = container.scrollHeight - previousScrollHeightRef.current;
+      preserveScrollRef.current = false;
+      return;
+    }
+
+    if (!didInitialScrollRef.current && !isLoading && !isLoadingMore && messagesData.length > 0) {
+      container.scrollTop = container.scrollHeight;
+      didInitialScrollRef.current = true;
+      return;
+    }
+  }, [isLoading, isLoadingMore, hasMoreOlder, messagesData.length]);
 
   return (
     <main className="w-full h-[100dvh] bg-white flex justify-center items-center overflow-hidden">
@@ -95,12 +139,19 @@ useEffect(() => {
         {/* Messages Area */}
         <div
           ref={scrollContainerRef}
+          onScroll={handleScroll}
           className="flex-1 overflow-y-auto p-4 pb-24 flex flex-col relative bg-[url('/chatbackground.png')] bg-cover bg-center bg-no-repeat"
         >
           {/* Loading */}
           {isLoading && (
             <div className="flex justify-center mt-4 mb-4">
               <span className="text-[12px] text-gray-500 animate-pulse">Loading messages...</span>
+            </div>
+          )}
+
+          {!isLoading && isLoadingMore && (
+            <div className="flex justify-center mt-2 mb-4">
+              <span className="text-[12px] text-gray-500 animate-pulse">Loading older messages...</span>
             </div>
           )}
 

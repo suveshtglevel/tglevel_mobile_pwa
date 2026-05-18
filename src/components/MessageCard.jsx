@@ -4,37 +4,44 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { CheckCheck, Eye, X } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import { decodeHtmlEntities, stripEmptyPlaceholders, autoLinkHtml } from '@/lib/messageRenderer';
 
 // --- ADVANCED SMART TEXT PARSER ---
-const parseSmartText = (text) => {
-  if (!text) return null;
-  
+const parseSmartText = (content) => {
+  if (!content) return null;
+
+  const source = content.encodedMessage || content.rawHtml || content.text || '';
+
+  // Decode entities (preserves emoji) and strip empty Quill placeholders
+  let decoded = decodeHtmlEntities(source);
+  decoded = stripEmptyPlaceholders(decoded);
+  // Remove image tags from the HTML since images are rendered separately
+  decoded = decoded.replace(/<img[^>]*>/gi, '');
+
   // 1. Convert *bold* text
-  let processedText = text.replace(/\*([^*]+)\*/g, '<strong class="font-bold">$1</strong>');
-  
+  let processedText = decoded.replace(/\*([^*]+)\*/g, '<strong class="font-bold">$1</strong>');
+
   // 2. Highlight specific trading keywords
   const keywords = [
-    "Entry Above =", "Entry Above", 
-    "SL =", "SL", 
-    "Target 1 =", "Target 2 =", "Target 3 =", "Target", 
-    "Disclaimer:", "Rationale=", "Rationale", 
+    "Entry Above =", "Entry Above",
+    "SL =", "SL",
+    "Target 1 =", "Target 2 =", "Target 3 =", "Target",
+    "Disclaimer:", "Rationale=", "Rationale",
     "Confidence Level Trade", "🟡 Medium probability", "🔴 Low probability", "🟢 High probability",
     "🔓 Unlock:"
   ];
-  
-  // Sort by length to prevent partial matching (e.g. replacing 'SL' inside another word)
+
   keywords.sort((a, b) => b.length - a.length).forEach(kw => {
-     const escapedKw = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-     processedText = processedText.replace(new RegExp(escapedKw, 'g'), `<strong class="font-bold">${kw}</strong>`);
+    const escapedKw = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    processedText = processedText.replace(new RegExp(escapedKw, 'g'), `<strong class="font-bold">${kw}</strong>`);
   });
 
-  // 3. Convert URLs to clickable links
-  processedText = processedText.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-700 hover:underline cursor-pointer">$1</a>');
+  // 3. Auto-link URLs (uses renderer util to ensure wrapping classes)
+  processedText = autoLinkHtml(processedText);
 
   // 4. Convert \n to actual HTML line breaks
   processedText = processedText.replace(/\n/g, '<br />');
 
-  // Render HTML safely
   return <div dangerouslySetInnerHTML={{ __html: processedText }} />;
 };
 
@@ -53,8 +60,8 @@ export default function MessageCard({ message, showTag }) {
     hour12: true  
   });
 
-  // Check if content has the single 'text' field
-  const hasTextContent = Boolean(message.content.text);
+  // Check if content has text/html
+  const hasTextContent = Boolean(message.content.text || message.content.rawHtml || message.content.encodedMessage);
   const showImage = Boolean(message.content.image && !imgError);
 
   return (
@@ -98,8 +105,8 @@ export default function MessageCard({ message, showTag }) {
 
             {/* 2. SMART TEXT RENDERING */}
             {hasTextContent && (
-              <div className="text-gray-800 text-[14px] leading-[1.5] space-y-3 pr-2">
-                 {parseSmartText(message.content.text)}
+              <div className="text-gray-800 text-[14px] leading-[1.5] space-y-3 pr-2 whitespace-pre-wrap break-words">
+                 {parseSmartText(message.content)}
               </div>
             )}
 
