@@ -64,9 +64,15 @@ const chatSlice = createSlice({
       })
       .addCase(fetchInitialMessages.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.error = null;
         state.messagesData = action.payload.data;
       })
       .addCase(fetchInitialMessages.rejected, (state, action) => {
+        if (action.meta?.aborted) {
+          state.isLoading = false;
+          return;
+        }
+
         state.isLoading = false;
         state.error = action.payload || 'Failed to load messages';
       });
@@ -78,10 +84,16 @@ const chatSlice = createSlice({
       })
       .addCase(fetchOlderMessages.fulfilled, (state, action) => {
         state.isLoadingMore = false;
+        state.error = null;
         state.messagesData = [...action.payload.data, ...state.messagesData];
         state.hasMoreOlder = action.payload.hasMore;
       })
       .addCase(fetchOlderMessages.rejected, (state, action) => {
+        if (action.meta?.aborted) {
+          state.isLoadingMore = false;
+          return;
+        }
+
         state.isLoadingMore = false;
         state.error = action.payload || 'Failed to load older messages';
       });

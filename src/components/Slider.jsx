@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setActiveTab, fetchInitialMessages } from '@/redux/chatSlice';
+import { setActiveTab } from '@/redux/chatSlice';
 import { communityMap } from '@/utils/chatMessageApi';
 
 const TAB_NAMES = ['NFT', 'EQT', 'COM', 'SWG'];
@@ -38,11 +38,6 @@ export default function Slider() {
       localStorage.setItem('chat_lastSeen', JSON.stringify(m));
     } catch {}
   };
-
-  // Auto fetch when tab changes
-  useEffect(() => {
-    dispatch(fetchInitialMessages(activeTab));
-  }, [activeTab]);
 
   // helper to map tab name -> community id
   const communityIdForTab = (tabName) => communityMap[tabName];
