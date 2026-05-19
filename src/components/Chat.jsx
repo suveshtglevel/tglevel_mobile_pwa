@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useLayoutEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { fetchInitialMessages, fetchOlderMessages } from '@/redux/chatSlice';
 import { Users } from 'lucide-react';
 import MessageCard from './MessageCard';
@@ -32,7 +32,6 @@ const getDateLabel = (timestamp) => {
 export default function Chat() {
   const dispatch = useDispatch();
   const router = useRouter();
-  const pathname = usePathname();
 
   const { activeTab, messagesData, isLoading, isLoadingMore, hasMoreOlder, error } = useSelector((state) => state.chat);
   const userType = useSelector((state) => state.user.userData.userType);
@@ -52,10 +51,6 @@ export default function Chat() {
   }, [activeTab]);
 
   useEffect(() => {
-    if (pathname !== '/chat') {
-      return;
-    }
-
     const promise = dispatch(fetchInitialMessages(activeTab));
 
     return () => {
@@ -63,7 +58,7 @@ export default function Chat() {
         promise.abort();
       }
     };
-  }, [pathname, activeTab, dispatch]);
+  }, [activeTab, dispatch]);
 
   const requestOlderMessages = () => {
     const container = scrollContainerRef.current;
