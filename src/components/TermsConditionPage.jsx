@@ -22,12 +22,37 @@ export default function TermsConditionPage() {
 const handleClick = async () => {
   localStorage.setItem('terms_accepted', 'true');
 
+  const userId = localStorage.getItem('user_id');
+  const isNewUser = localStorage.getItem('isNewUser') === 'true';
+  const joinedKey = userId ? `communities_joined_${userId}` : null;
+  const alreadyJoined = joinedKey ? localStorage.getItem(joinedKey) === 'true' : false;
+
+  if (isNewUser && !alreadyJoined) {
+    try {
+      const response = await fetch('/api/auth/join', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ community_ids: [7, 9, 11, 13] }),
+      });
+
+      const data = await response.json();
+      if (response.ok && (data.status === 'success' || data.status === true)) {
+        if (joinedKey) {
+          localStorage.setItem(joinedKey, 'true');
+        }
+      }
+    } catch (error) {
+      console.error('Community join failed:', error);
+    }
+  }
+
   if (deferredPrompt) {
     deferredPrompt.prompt();
     await deferredPrompt.userChoice;
     setDeferredPrompt(null);
   }
-  router.push("/chat");
+  router.push('/chat');
 };
 
   return (
