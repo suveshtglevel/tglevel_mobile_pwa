@@ -128,7 +128,7 @@ export default function Chat() {
           <div className="bg-linear-to-l from-white to-[#f0f9f1] border border-[#228b22]/20 border-r-0 rounded-l-full py-2 pl-3 pr-4 flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-[#228b22] flex items-center justify-center shrink-0 shadow-sm">
               <Users size={14} className="text-white" />
-            </div>
+            </div>  
             <div className={`flex items-center gap-1.5 overflow-hidden transition-all duration-300 ${isTradersTabOpen ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
               <span className="text-[12px] font-semibold text-gray-700 whitespace-nowrap">Total Traders:</span>
               <span className="text-[12px] font-bold text-[#228b22] whitespace-nowrap">{totalTraders.toLocaleString('en-IN')}</span>
@@ -142,7 +142,6 @@ export default function Chat() {
           onScroll={handleScroll}
           className="flex-1 overflow-y-auto p-4 pb-24 flex flex-col relative bg-[url('/chatbackground.png')] bg-cover bg-center bg-no-repeat"
         >
-          {/* Loading */}
           {isLoading && (
             <div className="flex justify-center mt-4 mb-4">
               <span className="text-[12px] text-gray-500 animate-pulse">Loading messages...</span>
@@ -158,7 +157,6 @@ export default function Chat() {
           {/* Error */}
           {error && <p className="text-center text-sm text-red-500 mt-4">{error}</p>}
 
-          {/* Messages */}
           {!isLoading && !error && messagesData.map((msg, index) => {
             const currentLabel = getDateLabel(msg.timestamp);
             const prevLabel = index > 0 ? getDateLabel(messagesData[index - 1].timestamp) : null;
@@ -182,7 +180,6 @@ export default function Chat() {
             );
           })}
 
-          {/* Empty */}
           {!isLoading && !error && messagesData.length === 0 && (
             <div className="flex-1 flex items-center justify-center">
               <p className="text-sm text-gray-500">No messages in this category.</p>

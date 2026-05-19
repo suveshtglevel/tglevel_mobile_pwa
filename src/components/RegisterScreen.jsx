@@ -55,32 +55,80 @@ export const RegisterScreen = () => {
   };
 
   // ✅ verifyOtp
+  // const handleVerify = async () => {
+  //   const enteredOtp = otp.join('');
+  //   if (enteredOtp.length < 4) { setError('Please enter the complete 4-digit code.'); return; }
+
+  //   setError('');
+  //   setIsLoading(true);
+  //   try {
+  //     const response = await fetch('/api/auth/verify-otp', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ otp: enteredOtp }),
+  //     });
+  //     const data = await response.json();
+  //     console.log(data)
+
+  //     if (data.status === 'success') {
+  //       localStorage.setItem("phone" , phoneNumber)
+  //       dispatch(updateProfile({ isNewUser: data.isNewUser, hasCompletedOnboarding: true }));
+  //       router.push('/terms-condition');
+  //     } else {
+  //       setError('Invalid OTP. Please try again.');
+  //     }
+  //   } catch {
+  //     setError('Verification failed. Check your connection.');
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
   const handleVerify = async () => {
-    const enteredOtp = otp.join('');
-    if (enteredOtp.length < 4) { setError('Please enter the complete 4-digit code.'); return; }
+  const enteredOtp = otp.join('');
+  if (enteredOtp.length < 4) {
+    setError('Please enter the complete 4-digit code.');
+    return;
+  }
 
-    setError('');
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ otp: enteredOtp }),
-      });
-      const data = await response.json();
+  setError('');
+  setIsLoading(true);
 
-      if (data.status === 'success') {
-        dispatch(updateProfile({ isNewUser: data.isNewUser, hasCompletedOnboarding: true }));
-        router.push('/terms-condition');
-      } else {
-        setError('Invalid OTP. Please try again.');
-      }
-    } catch {
-      setError('Verification failed. Check your connection.');
-    } finally {
-      setIsLoading(false);
+  try {
+    const response = await fetch('/api/auth/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ otp: enteredOtp }),
+    });
+
+    const data = await response.json();
+    console.log(data);
+
+    if (data.status === 'success') {
+      // ✅ STORE EVERYTHING PROPERLY
+      localStorage.setItem("phone", phoneNumber);
+      localStorage.setItem("user_id", data.user_id); // 🔥 IMPORTANT
+
+      // (optional but useful)
+      localStorage.setItem("isNewUser", data.isNewUser ? "true" : "false");
+
+      dispatch(
+        updateProfile({
+          isNewUser: data.isNewUser,
+          hasCompletedOnboarding: true,
+        })
+      );
+
+      router.push('/terms-condition');
+    } else {
+      setError('Invalid OTP. Please try again.');
     }
-  };
+  } catch {
+    setError('Verification failed. Check your connection.');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleOtpChange = (value, index) => {
     if (isNaN(value) || value.length > 1) return;

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from "react";
@@ -9,6 +10,41 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
+  // ✅ Check profile before allowing support chat
+  // const handleSupportClick = () => {
+  //   const userProfile = localStorage.getItem("userProfile");
+  //   if (userProfile) {
+  //     router.push("/support-chat"); // profile filled → go to CRM chat
+  //   } else {
+  //     router.push("/support-chat"); // profile not filled → fill form first
+  //   }
+  // };
+
+
+  const handleSupportClick = () => {
+  const profile = localStorage.getItem("userProfile");
+
+  if (!profile) {
+    // ❌ No profile → go fill form first
+    router.push("/profile?from=crm");
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(profile);
+
+    // ✅ Check required fields
+    if (!parsed.fullName || !parsed.email || !parsed.phone) {
+      router.push("/profile?from=crm");
+      return;
+    }
+
+    // ✅ Profile exists → go to chat
+    router.push("/support-chat");
+  } catch {
+    router.push("/profile?from=crm");
+  }
+};
   const navItems = [
     {
       label: "Communities",

@@ -1,29 +1,152 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 
 import {
   ChevronLeft,
   ChevronDown,
   Phone,
-  CalendarDays,
   Camera,
+  CheckCircle,
 } from "lucide-react";
-
-
 
 export default function Profile() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-const [fullName, setFullName] = useState("");
-const [email, setEmail] = useState("    ");
-const [gender, setGender] = useState("");
-const [dob, setDob] = useState("");
-const phoneNumber = "12345******";
-const [genderOpen, setGenderOpen] = useState(false);    
+  const from = searchParams.get("from");
+  const isReadOnly = from === "user-panel";
 
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [gender, setGender] = useState("");
+  const [dob, setDob] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [genderOpen, setGenderOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+  const [showToast, setShowToast] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    const phone = localStorage.getItem("phone");
+    if (phone) setPhoneNumber(phone);
+
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch("/api/user/edit-profile", {
+          method: "GET",
+          credentials: "include",
+        });
+        const data = await res.json();
+
+        if (data.status === "success") {
+          if (data.name) setFullName(data.name);
+          if (data.email) setEmail(data.email);
+          if (data.gender) setGender(data.gender.toLowerCase());
+
+          // ✅ FIX DOB FORMAT
+          if (data.dob) {
+            const formatted = data.dob.includes("T")
+              ? data.dob.split("T")[0]
+              : data.dob;
+            setDob(formatted);
+          }
+
+          if (data.phone) setPhoneNumber(data.phone);
+
+          localStorage.setItem("user_id", data.user_id);
+          localStorage.setItem("phone", data.phone || phone || "");
+          localStorage.setItem(
+            "userProfile",
+            JSON.stringify({
+              fullName: data.name,
+              email: data.email,
+              gender: data.gender?.toLowerCase(),
+              dob: data.dob,
+              phone: data.phone,
+            })
+          );
+        }
+      } catch (err) {
+        console.error("Failed to fetch profile", err);
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const validate = () => {
+    const newErrors = {};
+
+    if (!fullName.trim())
+      newErrors.fullName = "Full name is required";
+
+    if (!email.trim())
+      newErrors.email = "Email is required";
+
+    if (!gender) newErrors.gender = "Please select a gender";
+    if (!dob) newErrors.dob = "Date of birth is required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+
+    setIsLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("full_name", fullName.trim());
+      formData.append("email", email.trim());
+      formData.append("phone", phoneNumber);
+      formData.append("gender", gender);
+      formData.append("dob", dob);
+
+      const response = await fetch("/api/user/edit-profile", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      const data = await response.json();
+
+      if (data.status === "success") {
+        localStorage.setItem(
+          "userProfile",
+          JSON.stringify({
+            fullName: fullName.trim(),
+            email: email.trim(),
+            gender,
+            dob,
+            phone: phoneNumber,
+          })
+        );
+
+        setShowToast(true);
+
+        setTimeout(() => {
+          if (from === "crm") {
+            router.push("/support-chat");
+          } else {
+            router.push("/user-panel");
+          }
+        }, 1500);
+      } else {
+        alert(data.message || "Failed to update profile.");
+      }
+    } catch {
+      alert("Something went wrong.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white flex justify-center">
@@ -34,179 +157,144 @@ const [genderOpen, setGenderOpen] = useState(false);
           <button
             onClick={() => router.push("/user-panel")}
             className="w-8 h-8 rounded-full border flex items-center justify-center"
-            aria-label="Back to user panel"
           >
             <ChevronLeft size={18} />
           </button>
         </div>
 
-        {/* Profile Section */}
+        {/* Profile */}
         <div className="flex flex-col items-center">
-
           <div className="relative">
-
             <div className="w-24 h-24 rounded-full border-4 border-green-600 overflow-hidden">
-              <Image
-                src="/profile.png"
-                alt="profile"
-                width={100}
-                height={100}
-                className="object-cover w-full h-full"
-              />
+              <Image src="/profile.png" alt="profile" width={100} height={100} />
             </div>
 
-            {/* camera button */}
-            <button className="absolute bottom-1 right-0 bg-green-600 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white">
-              <Camera size={14} className="text-white" />
-            </button>
+            {!isReadOnly && (
+              <button className="absolute bottom-1 right-0 bg-green-600 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white">
+                <Camera size={14} className="text-white" />
+              </button>
+            )}
           </div>
 
-          <h2 className="mt-4 text-xl font-semibold text-black">
-            Update Profile
-          </h2>
-
+          <h2 className="mt-4 text-xl font-semibold">Profile</h2>
           <p className="text-sm text-gray-400 mt-1">
-            Complete your details
+            {isFetching
+              ? "Loading your details..."
+              : isReadOnly
+              ? "Viewing your details"
+              : "Complete your details"}
           </p>
         </div>
 
         {/* Form */}
         <div className="mt-10 space-y-6">
 
-          {/* Full Name */}
+          {/* Name */}
           <div className="border-b pb-3">
-
-            <label className="text-xs text-gray-400 mb-2 block">
-              Full Name
-            </label>
-
+            <label className="text-xs text-gray-400">Full Name</label>
             <input
               type="text"
               value={fullName}
+              readOnly={isReadOnly}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Enter full name"
-              className="w-full text-sm text-black outline-none bg-transparent"
+              className="w-full text-sm bg-transparent outline-none"
             />
           </div>
 
           {/* Email */}
           <div className="border-b pb-3">
-
-            <label className="text-xs text-gray-400 mb-2 block">
-              Email Address
-            </label>
-
+            <label className="text-xs text-gray-400">Email</label>
             <input
               type="email"
               value={email}
+              readOnly={isReadOnly}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter email"
-              className="w-full text-sm text-black outline-none bg-transparent"
+              className="w-full text-sm bg-transparent outline-none"
             />
           </div>
 
-          {/* Phone Number */}
+          {/* Phone */}
           <div className="border-b pb-3">
-
-            <label className="text-xs text-gray-400 mb-2 block">
-              Phone Number
-            </label>
-
-            <div className="flex items-center gap-3">
-              <Phone size={18} className="text-black" />
-
+            <label className="text-xs text-gray-400">Phone</label>
+            <div className="flex items-center gap-2">
+              <Phone size={16} />
               <input
                 type="text"
                 value={phoneNumber}
                 disabled
-                className="w-full text-sm text-gray-500 bg-transparent outline-none cursor-not-allowed"
+                className="w-full text-sm bg-transparent"
               />
             </div>
           </div>
 
-          {/* Gender */}
-<div className="border-b pb-3">
-  <label className="text-xs text-gray-400 mb-2 block">
-    Gender
-  </label>
+          {/* ✅ Gender FIX */}
+          <div className="border-b pb-3 relative">
+            <label className="text-xs text-gray-400">Gender</label>
 
-  <div className="relative w-full">
-    <button
-      type="button"
-      onClick={() => setGenderOpen((open) => !open)}
-      className="w-full text-sm text-black bg-transparent outline-none flex items-center justify-between"
-    >
-      <span>{gender || "Select Gender"}</span>
-      <ChevronDown size={18} className="text-gray-500 shrink-0" />
-    </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (isReadOnly) return;
+                setGenderOpen(!genderOpen);
+              }}
+              className="w-full flex justify-between text-sm"
+            >
+              {gender || "Select Gender"}
+              <ChevronDown size={16} />
+            </button>
 
-    {genderOpen && (
-      <div className="absolute left-0 top-full mt-2 w-full rounded-lg border border-gray-200 bg-white shadow-lg z-20 overflow-hidden">
-        <button
-          type="button"
-          className="w-full px-4 py-3 text-left text-sm text-black hover:bg-gray-50"
-          onClick={() => {
-            setGender("male");
-            setGenderOpen(false);
-          }}
-        >
-          Male
-        </button>
-
-        <button
-          type="button"
-          className="w-full px-4 py-3 text-left text-sm text-black hover:bg-gray-50"
-          onClick={() => {
-            setGender("female");
-            setGenderOpen(false);
-          }}
-        >
-          Female
-        </button>
-
-        <button
-          type="button"
-          className="w-full px-4 py-3 text-left text-sm text-black hover:bg-gray-50"
-          onClick={() => {
-            setGender("other");
-            setGenderOpen(false);
-          }}
-        >
-          Other
-        </button>
-      </div>
-    )}
-  </div>
-</div>
+            {genderOpen && !isReadOnly && (
+              <div className="absolute w-full bg-white border mt-2 rounded shadow z-20">
+                {["male", "female", "other"].map((g) => (
+                  <button
+                    key={g}
+                    className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                    onClick={() => {
+                      setGender(g);
+                      setGenderOpen(false);
+                    }}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* DOB */}
           <div className="border-b pb-3">
-
-            <label className="text-xs text-gray-400 mb-2 block">
-              Date of Birth
-            </label>
-
-            <div className="flex items-center justify-between">
-
-              <input
-                type="date"
-                value={dob}
-                onChange={(e) => setDob(e.target.value)}
-                className="w-full text-sm text-black bg-transparent outline-none"
-              />
-
-            </div>
+            <label className="text-xs text-gray-400">DOB</label>
+            <input
+              type="date"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+              readOnly={isReadOnly}
+              disabled={isReadOnly}
+              className="w-full text-sm bg-transparent"
+            />
           </div>
         </div>
 
         {/* Button */}
-        <div className="mt-14 flex justify-center">
-
-          <button className="bg-green-600 hover:bg-green-700 transition-all text-white px-10 py-3 rounded-xl font-medium w-full">
-            Create Profile
-          </button>
-        </div>
+        {!isReadOnly && (
+          <div className="mt-10">
+            <button
+              onClick={handleSubmit}
+              disabled={isLoading}
+              className="bg-green-600 text-white w-full py-3 rounded-xl"
+            >
+              {isLoading ? "Saving..." : "Update Profile"}
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Toast */}
+      {showToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded flex items-center gap-2">
+          <CheckCircle size={16} /> Saved
+        </div>
+      )}
     </div>
   );
 }

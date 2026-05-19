@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 const menuItems = [
-  { id: 1, label: "Profile", icon: CircleUserRound, route: "/profile" },
+  { id: 1, label: "Profile", icon: CircleUserRound, route: "/profile?from=user-panel&mode=view" },
   { id: 2, label: "Terms & Condition", icon: FileText, route: "/terms-condition?mode=view" },
   { id: 3, label: "Policies", icon: ShieldCheck, route: "https://tglevels.com/terms-and-conditions/" },
   { id: 4, label: "Notification Settings", icon: Bell, route: "/notification-settings" },
