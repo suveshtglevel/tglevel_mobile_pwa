@@ -9,7 +9,6 @@ const sortMessagesAscending = (messages) =>
   [...messages].sort((left, right) => Number(left.id) - Number(right.id));
 
 const transformMessage = (msg) => {
-  // prefer encoded_message when available and preserve the raw HTML
   const rawMessage = msg.encoded_message || msg.message || '';
   const imageMatch = rawMessage.match(/<img[^>]+src=["']([^"']+)["']/i);
   const imageUrl = imageMatch ? imageMatch[1] : null;
@@ -26,7 +25,9 @@ const transformMessage = (msg) => {
 
   return {
     id: msg.id,
-    type: 'premium',
+    // message_type "1" = trade/signal, "2" = announcement, "3" = news
+    // Stored as `messageType` so MessageCard can detect premium trade messages
+    messageType: msg.message_type,
     tag: msg.message_type,
     views: msg.views,
     timestamp: msg.message_time
@@ -35,7 +36,7 @@ const transformMessage = (msg) => {
     content: {
       text: plainText || null,
       image: imageUrl || null,
-      rawHtml: rawMessage, // preserve original HTML for rendering
+      rawHtml: rawMessage,
       encodedMessage: msg.encoded_message || null,
     },
   };
@@ -86,20 +87,13 @@ export const fetchMessagesFromApi = async (category) => {
   const data = sortMessagesAscending(raw.map(transformMessage));
 
   if (data.length > 0) {
-    return {
-      data,
-      hasMore: false,
-    };
+    return { data, hasMore: false };
   }
 
-  // If the latest messages endpoint returns nothing, fall back to the
-  // paginated history endpoint so the UI can still start from the most
-  // recent available older message.
   return fetchPaginatedMessagesFromApi(category);
 };
 
 export const fetchOlderMessagesFromApi = async (category, lastId) => {
   if (!lastId) return { data: [], hasMore: false };
-
   return fetchPaginatedMessagesFromApi(category, lastId);
 };
