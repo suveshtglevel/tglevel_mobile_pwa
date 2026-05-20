@@ -114,6 +114,8 @@ export default function Slider() {
     setDots((prev) => ({ ...prev, [tabName]: false }));
     const currentMax = lastMaxIdsRef.current[String(cid)] || null;
     if (currentMax) setLastSeenForCommunity(cid, currentMax);
+    // If the tab is already active, don't re-dispatch — that clears messages
+    if (tabName === activeTab) return;
     dispatch(setActiveTab(tabName));
   };
 
