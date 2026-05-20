@@ -100,7 +100,7 @@ export default function Slider() {
       }
       // batch update dots
       setDots((prev) => ({ ...prev, ...newDots }));
-    }, 30000); // poll every 30s
+    }, 1000); // poll every 1s
 
     return () => {
       mounted = false;

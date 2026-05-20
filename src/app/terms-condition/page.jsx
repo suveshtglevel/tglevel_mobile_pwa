@@ -1,5 +1,12 @@
+"use client";
 
-import TermsConditionPage from "../../components/TermsConditionPage"
+import { Suspense } from "react";
+import TermsConditionPage from "../../components/TermsConditionPage";
+
 export default function Page() {
-  return <TermsConditionPage />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <TermsConditionPage />
+    </Suspense>
+  );
 }
