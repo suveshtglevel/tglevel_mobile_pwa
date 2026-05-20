@@ -1,5 +1,10 @@
+import { Suspense } from "react";
+import TermsConditionPage from "../../components/TermsConditionPage";
 
-import TermsConditionPage from "../../components/TermsConditionPage"
 export default function Page() {
-  return <TermsConditionPage />;
+  return (
+    <Suspense fallback={null}>
+      <TermsConditionPage />
+    </Suspense>
+  );
 }
