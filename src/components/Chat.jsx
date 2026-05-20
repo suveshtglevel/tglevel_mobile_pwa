@@ -52,24 +52,15 @@ export default function Chat() {
 
   useEffect(() => {
     const promise = dispatch(fetchInitialMessages(activeTab));
-
     return () => {
-      if (promise?.abort) {
-        promise.abort();
-      }
+      if (promise?.abort) promise.abort();
     };
   }, [activeTab, dispatch]);
 
   const requestOlderMessages = () => {
     const container = scrollContainerRef.current;
-
-    if (!container || isLoadingMore || !hasMoreOlder || isFetchingOlderRef.current) {
-      return;
-    }
-
-    if (container.scrollTop > topThreshold) {
-      return;
-    }
+    if (!container || isLoadingMore || !hasMoreOlder || isFetchingOlderRef.current) return;
+    if (container.scrollTop > topThreshold) return;
 
     previousScrollHeightRef.current = container.scrollHeight;
     preserveScrollRef.current = true;
@@ -81,22 +72,13 @@ export default function Chat() {
 
   const handleScroll = () => {
     const container = scrollContainerRef.current;
-
-    if (!container) {
-      return;
-    }
-
-    if (container.scrollTop <= topThreshold && !isLoading) {
-      requestOlderMessages();
-    }
+    if (!container) return;
+    if (container.scrollTop <= topThreshold && !isLoading) requestOlderMessages();
   };
 
   useLayoutEffect(() => {
     const container = scrollContainerRef.current;
-
-    if (!container) {
-      return;
-    }
+    if (!container) return;
 
     if (preserveScrollRef.current && !isLoadingMore) {
       container.scrollTop = container.scrollHeight - previousScrollHeightRef.current;
@@ -112,35 +94,37 @@ export default function Chat() {
   }, [isLoading, isLoadingMore, hasMoreOlder, messagesData.length]);
 
   return (
-    <main className="w-full h-[100dvh] bg-white flex justify-center items-center overflow-hidden">
+    // h-app uses 100dvh with fallback; no overflow-hidden on main so address bar collapse works smoothly
+    <main className="w-full h-app bg-white flex justify-center items-stretch">
       <div className="flex flex-col h-full w-full max-w-md bg-white shadow-xl relative overflow-hidden">
 
         <Header />
         <Slider />
 
-        {/* Floating Traders Tab */}
+        {/* Floating Traders Tab — positioned relative to Header+Slider height (53 + 48 = ~101).
+            Using top-28 (112px) gives consistent spacing on all phones. */}
         <div
-          className={`absolute top-32 right-0 z-50 flex items-center cursor-pointer transition-transform duration-300 ease-in-out ${
+          className={`absolute top-28 right-0 z-40 flex items-center cursor-pointer transition-transform duration-300 ease-in-out ${
             isTradersTabOpen ? 'translate-x-0' : 'translate-x-[calc(100%-40px)]'
           }`}
           onClick={() => setIsTradersTabOpen(!isTradersTabOpen)}
         >
-          <div className="bg-linear-to-l from-white to-[#f0f9f1] border border-[#228b22]/20 border-r-0 rounded-l-full py-2 pl-3 pr-4 flex items-center gap-2">
+          <div className="bg-linear-to-l from-white to-[#f0f9f1] border border-[#228b22]/20 border-r-0 rounded-l-full py-1.5 pl-2.5 pr-3 flex items-center gap-2">
             <div className="w-6 h-6 rounded-full bg-[#228b22] flex items-center justify-center shrink-0 shadow-sm">
               <Users size={14} className="text-white" />
-            </div>  
+            </div>
             <div className={`flex items-center gap-1.5 overflow-hidden transition-all duration-300 ${isTradersTabOpen ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
-              <span className="text-[12px] font-semibold text-gray-700 whitespace-nowrap">Total Traders:</span>
-              <span className="text-[12px] font-bold text-[#228b22] whitespace-nowrap">{totalTraders.toLocaleString('en-IN')}</span>
+              <span className="text-[11px] sm:text-[12px] font-semibold text-gray-700 whitespace-nowrap">Total Traders:</span>
+              <span className="text-[11px] sm:text-[12px] font-bold text-[#228b22] whitespace-nowrap">{totalTraders.toLocaleString('en-IN')}</span>
             </div>
           </div>
         </div>
 
-        {/* Messages Area */}
+        {/* Messages Area — pb-navbar keeps the last message clear of the fixed Navbar (~96px + safe area) */}
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto p-4 pb-24 flex flex-col relative bg-[url('/chatbackground.png')] bg-cover bg-center bg-no-repeat"
+          className="flex-1 overflow-y-auto p-3 sm:p-4 pb-navbar flex flex-col relative bg-[url('/chatbackground.png')] bg-cover bg-center bg-no-repeat"
         >
           {isLoading && (
             <div className="flex justify-center mt-4 mb-4">
@@ -154,7 +138,6 @@ export default function Chat() {
             </div>
           )}
 
-          {/* Error */}
           {error && <p className="text-center text-sm text-red-500 mt-4">{error}</p>}
 
           {!isLoading && !error && messagesData.map((msg, index) => {
@@ -189,8 +172,8 @@ export default function Chat() {
 
         {/* Trial Expired Overlay */}
         {!isTrialActive && (
-          <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
-            <div className="bg-white/95 w-60 p-5 rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.15)] flex flex-col items-center border border-white backdrop-blur-md pointer-events-auto">
+          <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none px-4">
+            <div className="bg-white/95 w-full max-w-[240px] p-5 rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.15)] flex flex-col items-center border border-white backdrop-blur-md pointer-events-auto">
               <div className="mb-3 drop-shadow-sm">
                 <svg width="28" height="34" viewBox="0 0 24 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M7 11V7C7 4.23858 9.23858 2 12 2C14.7614 2 17 4.23858 17 7V11" stroke="#A1A1AA" strokeWidth="2.5" strokeLinecap="round"/>

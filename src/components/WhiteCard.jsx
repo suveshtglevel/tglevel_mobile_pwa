@@ -52,11 +52,11 @@ export default function WhiteCard({ message }) {
 
   return (
     <>
-      <div className="mt-auto mb-4 ml-2 flex flex-col items-start w-fit max-w-[93%] animate-in fade-in slide-in-from-left-2 duration-300">
+      <div className="mt-auto mb-4 ml-2 flex flex-col items-start w-fit max-w-[88%] sm:max-w-[92%] animate-in fade-in slide-in-from-left-2 duration-300">
         <div className="relative bg-white text-[#111827] p-3 rounded-[18px] rounded-bl-none border-[1.5px] border-gray-200 shadow-sm">
           
           {/* Tail */}
-          <div className="absolute bottom-[-1.5px] -left-2.75 w-3.25 h-4 z-0 drop-shadow-sm">
+          <div className="absolute bottom-[-1.5px] -left-[11px] w-[13px] h-4 z-0 drop-shadow-sm">
             <svg viewBox="0 0 13 16" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M13 0 Q9 14 0 15.5 L13 15.5" fill="white" stroke="#e5e7eb" strokeWidth="1.5" />
             </svg>

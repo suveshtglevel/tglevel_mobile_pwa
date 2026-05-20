@@ -131,13 +131,13 @@ export default function MessageCard({ message, showTag, onUpgradePress }) {
 
   return (
     <>
-      <div className="mt-auto mb-4 ml-2 flex flex-col items-start w-fit max-w-[94%] animate-in fade-in slide-in-from-left-2 duration-300">
+      <div className="mt-auto mb-4 ml-2 flex flex-col items-start w-fit max-w-[88%] sm:max-w-[92%] animate-in fade-in slide-in-from-left-2 duration-300">
 
         {/* Outer card — position:relative so badge and lock overlay can anchor to it */}
         <div className="relative bg-white p-3 pt-4 rounded-[18px] rounded-bl-none border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] w-full">
 
-          {/* SVG tail */}
-          <div className="absolute bottom-[-1px] -left-2.75 w-3.25 h-4 z-0 drop-shadow-sm">
+          {/* SVG tail — uses standard arbitrary values */}
+          <div className="absolute bottom-[-1px] -left-[11px] w-[13px] h-4 z-0 drop-shadow-sm">
             <svg viewBox="0 0 13 16" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M13 0 Q9 14 0 15.5 L13 15.5" fill="#ffffff" stroke="#E5E7EB" strokeWidth="1.5" />
             </svg>
@@ -167,7 +167,7 @@ export default function MessageCard({ message, showTag, onUpgradePress }) {
                   alt="Attached Image"
                   width={400}
                   height={300}
-                  className="w-full h-auto max-h-50 object-cover transition-transform duration-200"
+                  className="w-full h-auto max-h-[200px] object-cover transition-transform duration-200"
                   onError={() => setImgError(true)}
                 />
               </div>

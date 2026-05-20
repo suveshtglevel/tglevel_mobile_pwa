@@ -61,11 +61,9 @@ function VoiceMessageBubble({ duration, side }) {
 
   return (
     <div className={`flex flex-col ${isRight ? 'items-end' : 'items-start'}`}>
-      <div className="flex items-center gap-3 bg-[#EBEBEB] rounded-2xl px-4 py-3 w-[200px]">
-        <button
-          onClick={togglePlay}
-          className="w-7 h-7 flex items-center justify-center shrink-0 cursor-pointer"
-        >
+      {/* Voice bubble: max-width prevents overflow on narrow screens */}
+      <div className="flex items-center gap-2 sm:gap-3 bg-[#EBEBEB] rounded-2xl px-3 sm:px-4 py-2.5 sm:py-3 w-full max-w-[220px]">
+        <button onClick={togglePlay} className="w-7 h-7 flex items-center justify-center shrink-0 cursor-pointer">
           {playing
             ? <Pause size={15} strokeWidth={2.5} color="#04386C" />
             : <Play size={15} strokeWidth={2.5} color="#04386C" fill="#04386C" />}
@@ -78,10 +76,7 @@ function VoiceMessageBubble({ duration, side }) {
           />
         </div>
 
-        <button
-          onClick={cycleSpeed}
-          className="text-[12px] font-semibold text-[#04386C] w-8 text-center shrink-0 cursor-pointer"
-        >
+        <button onClick={cycleSpeed} className="text-[12px] font-semibold text-[#04386C] w-8 text-center shrink-0 cursor-pointer">
           {speed === 1 ? '1×' : speed === 1.5 ? '1.5×' : '2×'}
         </button>
 
@@ -99,7 +94,7 @@ function VoiceMessageBubble({ duration, side }) {
       </div>
 
       {expanded && (
-        <div className="mt-1 bg-white border border-gray-200 rounded-xl px-3 py-2 w-[200px] text-[12px] text-gray-500">
+        <div className="mt-1 bg-white border border-gray-200 rounded-xl px-3 py-2 max-w-[220px] text-[12px] text-gray-500">
           Duration: {duration}
         </div>
       )}
@@ -110,7 +105,7 @@ function VoiceMessageBubble({ duration, side }) {
 function TextBubble({ text, side }) {
   const isRight = side === 'sent';
   return (
-    <div className={`max-w-[65%] px-4 py-2 rounded-2xl text-[14px] ${
+    <div className={`max-w-[75%] sm:max-w-[65%] px-3 sm:px-4 py-2 rounded-2xl text-[13px] sm:text-[14px] break-words ${
       isRight
         ? 'bg-[#04386C] text-white rounded-br-sm'
         : 'bg-[#EBEBEB] text-black rounded-bl-sm'
@@ -195,22 +190,23 @@ export default function SupportChat() {
   const formatRecordTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-white">
+    // h-app + pt-safe + pb-safe so the chat fits exactly the dynamic viewport on all phones
+    <div className="flex flex-col h-app max-w-md mx-auto bg-white pt-safe">
       {/* Header */}
-      <div className="flex-none flex items-center gap-3 bg-white border-b border-gray-100 px-4 h-14 z-50">
-        <button onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center cursor-pointer">
+      <div className="flex-none flex items-center gap-3 bg-white border-b border-gray-100 px-3 sm:px-4 h-14 z-50">
+        <button onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center cursor-pointer" aria-label="Back">
           <ArrowLeft size={22} strokeWidth={2.5} color="#000" />
         </button>
-        <span className="text-[17px] font-semibold text-black">Support Chat</span>
+        <span className="text-base sm:text-[17px] font-semibold text-black">Support Chat</span>
       </div>
 
       {/* Agent Status Bar */}
-      <div className="flex-none flex items-center gap-3 bg-[#04386C] px-4 py-2.5">
+      <div className="flex-none flex items-center gap-3 bg-[#04386C] px-3 sm:px-4 py-2.5">
         <div className="w-10 h-10 rounded-full bg-gray-300 overflow-hidden shrink-0 flex items-center justify-center">
-          <Image src="/human.png" alt="TGLevels TL" width={40} height={40} className="object-cover" />
+          <Image src="/human.png" alt="TGLevels TL" width={40} height={40} className="object-cover w-full h-full" />
         </div>
-        <div className="flex flex-col">
-          <span className="text-white font-semibold text-[14px]">TGLevels TL</span>
+        <div className="flex flex-col min-w-0">
+          <span className="text-white font-semibold text-[14px] truncate">TGLevels TL</span>
           <div className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />
             <span className="text-green-400 text-[12px]">Online</span>
@@ -219,7 +215,7 @@ export default function SupportChat() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-2 bg-white">
+      <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-3 flex flex-col gap-2 bg-white">
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -234,33 +230,34 @@ export default function SupportChat() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="flex-none border-t border-gray-100 px-3 py-2 bg-white">
+      {/* Input Area — pb-safe inset for iPhone gesture bar */}
+      <div className="flex-none border-t border-gray-100 px-2 sm:px-3 py-2 bg-white pb-safe">
         {isRecording ? (
-          <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-full px-4 py-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-            <span className="flex-1 text-[14px] text-red-600 font-medium">
+          <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-full px-3 sm:px-4 py-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shrink-0" />
+            <span className="flex-1 text-[13px] sm:text-[14px] text-red-600 font-medium truncate">
               Recording... {formatRecordTime(recordSeconds)}
             </span>
             <button
               onClick={stopRecording}
-              className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center cursor-pointer"
+              className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center cursor-pointer shrink-0"
+              aria-label="Stop recording"
             >
               <Square size={14} color="#fff" fill="#fff" />
             </button>
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <div className="flex-1 flex items-center bg-gray-100 rounded-full px-4 py-2.5 gap-2">
+            <div className="flex-1 min-w-0 flex items-center bg-gray-100 rounded-full px-3 sm:px-4 py-2 sm:py-2.5 gap-2">
               <input
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Write a message..."
-                className="flex-1 bg-transparent text-[14px] text-black placeholder-gray-400 outline-none cursor-text"
+                className="flex-1 min-w-0 bg-transparent text-[13px] sm:text-[14px] text-black placeholder-gray-400 outline-none cursor-text"
               />
-              <button onClick={handleAttachment} className="shrink-0 cursor-pointer">
+              <button onClick={handleAttachment} className="shrink-0 cursor-pointer" aria-label="Attach file">
                 <Paperclip size={20} strokeWidth={2} color="#888" />
               </button>
             </div>
@@ -268,7 +265,8 @@ export default function SupportChat() {
             {inputText.trim() ? (
               <button
                 onClick={sendText}
-                className="w-10 h-10 bg-[#04386C] rounded-full flex items-center justify-center shrink-0 cursor-pointer"
+                className="w-10 h-10 bg-[#04386C] rounded-full flex items-center justify-center shrink-0 cursor-pointer active:scale-95 transition-transform"
+                aria-label="Send"
               >
                 <Send size={18} color="#fff" />
               </button>
@@ -276,7 +274,8 @@ export default function SupportChat() {
               <button
                 onMouseDown={startRecording}
                 onTouchStart={startRecording}
-                className="w-10 h-10 bg-[#04386C] rounded-full flex items-center justify-center shrink-0 cursor-pointer"
+                className="w-10 h-10 bg-[#04386C] rounded-full flex items-center justify-center shrink-0 cursor-pointer active:scale-95 transition-transform"
+                aria-label="Record voice message"
               >
                 <Mic size={18} color="#fff" />
               </button>

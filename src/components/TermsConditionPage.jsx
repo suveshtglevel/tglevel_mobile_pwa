@@ -19,78 +19,75 @@ export default function TermsConditionPage() {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-const handleClick = async () => {
-  localStorage.setItem('terms_accepted', 'true');
+  const handleClick = async () => {
+    localStorage.setItem('terms_accepted', 'true');
 
-  const userId = localStorage.getItem('user_id');
-  const isNewUser = localStorage.getItem('isNewUser') === 'true';
-  const joinedKey = userId ? `communities_joined_${userId}` : null;
-  const alreadyJoined = joinedKey ? localStorage.getItem(joinedKey) === 'true' : false;
+    const userId = localStorage.getItem('user_id');
+    const isNewUser = localStorage.getItem('isNewUser') === 'true';
+    const joinedKey = userId ? `communities_joined_${userId}` : null;
+    const alreadyJoined = joinedKey ? localStorage.getItem(joinedKey) === 'true' : false;
 
-  if (isNewUser && !alreadyJoined) {
-    try {
-      const response = await fetch('/api/auth/join', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ community_ids: [7, 9, 11, 13] }),
-      });
+    if (isNewUser && !alreadyJoined) {
+      try {
+        const response = await fetch('/api/auth/join', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ community_ids: [7, 9, 11, 13] }),
+        });
 
-      const data = await response.json();
-      if (response.ok && (data.status === 'success' || data.status === true)) {
-        if (joinedKey) {
-          localStorage.setItem(joinedKey, 'true');
+        const data = await response.json();
+        if (response.ok && (data.status === 'success' || data.status === true)) {
+          if (joinedKey) localStorage.setItem(joinedKey, 'true');
         }
+      } catch (error) {
+        console.error('Community join failed:', error);
       }
-    } catch (error) {
-      console.error('Community join failed:', error);
     }
-  }
 
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    setDeferredPrompt(null);
-  }
-  router.push('/chat');
-};
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      setDeferredPrompt(null);
+    }
+    router.push('/chat');
+  };
 
   return (
-    <div className="min-h-screen bg-[#F3F3F7] flex justify-center">
-      <div className="w-full max-w-[390px]">
+    <div className="min-h-app w-full bg-[#F3F3F7] flex justify-center">
+      <div className="w-full max-w-md relative">
 
         {/* Header */}
-        <div className="bg-white h-[74px] shadow-md flex items-center justify-center sticky top-0 z-50 relative">
-          
-          {/* Back button — only in view mode */}
+        <div className="bg-white h-16 sm:h-[74px] shadow-md flex items-center justify-center sticky top-0 z-50 pt-safe">
           {isViewMode && (
             <button
               onClick={() => router.back()}
-              className="absolute left-4 flex items-center gap-1 active:scale-95 transition-transform"
+              className="absolute left-3 sm:left-4 flex items-center gap-1 active:scale-95 transition-transform"
+              aria-label="Back"
             >
               <ChevronLeft size={20} strokeWidth={2.5} className="text-black" />
-              <span className="text-[15px] font-medium text-black">Back</span>
+              <span className="text-sm sm:text-[15px] font-medium text-black">Back</span>
             </button>
           )}
 
-          <h1 className="text-[22px] font-bold text-black">
+          <h1 className="text-lg sm:text-[22px] font-bold text-black">
             Terms & Conditions
           </h1>
         </div>
 
-        {/* Content */}
-        <div className="px-6 py-8 pb-[220px] space-y-10">
+        {/* Content — responsive padding, leaves room for sticky button at bottom */}
+        <div className="px-4 sm:px-6 py-6 sm:py-8 pb-40 sm:pb-[220px] space-y-8 sm:space-y-10">
 
           {/* USER AGREEMENT */}
           <section>
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-[8px] h-[30px] bg-[#1E9B22] rounded-full" />
-              <h2 className="text-[24px] font-bold text-[#121826]">
+            <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <div className="w-1.5 sm:w-[8px] h-7 sm:h-[30px] bg-[#1E9B22] rounded-full shrink-0" />
+              <h2 className="text-xl sm:text-[24px] font-bold text-[#121826]">
                 User Agreement
               </h2>
             </div>
-            <div className="bg-[#FAFAFA] rounded-[24px] p-7 shadow-sm">
-              <p className="text-[18px] leading-[1.7] text-[#4B5563]">
+            <div className="bg-[#FAFAFA] rounded-2xl sm:rounded-[24px] p-5 sm:p-7 shadow-sm">
+              <p className="text-sm sm:text-[18px] leading-[1.6] sm:leading-[1.7] text-[#4B5563]">
                 By using this platform, you agree to avail research services
                 including equity analysis, reports, and model portfolio
                 recommendations. The Research Analyst (RA) will not execute
@@ -99,7 +96,7 @@ const handleClick = async () => {
                 cash. Your investment decisions remain solely yours based on
                 your declared risk profile. The RA or associates may hold
                 positions in recommended securities, which will be disclosed.
-                Either party may terminate this agreement with 30 days' written
+                Either party may terminate this agreement with 30 days&apos; written
                 notice. For grievances, contact our Grievance Officer or write
                 to SEBI SCORES at scores.gov.in.
               </p>
@@ -108,17 +105,17 @@ const handleClick = async () => {
 
           {/* SEBI DISCLAIMER */}
           <section>
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-[8px] h-[30px] bg-[#1E9B22] rounded-full" />
-              <h2 className="text-[24px] font-bold text-[#121826]">
+            <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <div className="w-1.5 sm:w-[8px] h-7 sm:h-[30px] bg-[#1E9B22] rounded-full shrink-0" />
+              <h2 className="text-xl sm:text-[24px] font-bold text-[#121826]">
                 SEBI Disclaimer
               </h2>
             </div>
-            <div className="bg-[#F0F2FF] rounded-[24px] p-7 shadow-sm flex gap-4">
-              <div className="min-w-[40px] h-[40px] rounded-full bg-[#2F7A5F] flex items-center justify-center mt-1">
-                <Info size={20} className="text-white" />
+            <div className="bg-[#F0F2FF] rounded-2xl sm:rounded-[24px] p-5 sm:p-7 shadow-sm flex gap-3 sm:gap-4">
+              <div className="min-w-[36px] w-9 h-9 sm:min-w-[40px] sm:w-10 sm:h-10 rounded-full bg-[#2F7A5F] flex items-center justify-center mt-1 shrink-0">
+                <Info size={18} className="text-white sm:w-5 sm:h-5" />
               </div>
-              <p className="text-[18px] leading-[1.8] text-[#4B5563]">
+              <p className="text-sm sm:text-[18px] leading-[1.6] sm:leading-[1.8] text-[#4B5563]">
                 Investments in the market are subject to market risk. Please
                 read all related documents carefully before investing.
                 Registration granted by SEBI, Enlistment as RA with Exchange
@@ -131,31 +128,31 @@ const handleClick = async () => {
 
           {/* DPDP */}
           <section>
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-[8px] h-[30px] bg-[#B8E7D4] rounded-full" />
-              <h2 className="text-[24px] font-bold text-[#121826]">
+            <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+              <div className="w-1.5 sm:w-[8px] h-7 sm:h-[30px] bg-[#B8E7D4] rounded-full shrink-0" />
+              <h2 className="text-xl sm:text-[24px] font-bold text-[#121826]">
                 DPDP Act — Data Privacy
               </h2>
             </div>
-            <div className="bg-[#FAFAFA] rounded-[24px] p-7 shadow-sm">
-              <p className="text-[18px] leading-[1.8] text-[#4B5563] mb-8">
+            <div className="bg-[#FAFAFA] rounded-2xl sm:rounded-[24px] p-5 sm:p-7 shadow-sm">
+              <p className="text-sm sm:text-[18px] leading-[1.6] sm:leading-[1.8] text-[#4B5563] mb-6 sm:mb-8">
                 We collect your personal data (name, PAN, email, phone, bank
                 details, risk profile) solely for providing research services,
                 KYC compliance, fee processing, and regulatory record-keeping.
                 Your data is never sold or shared beyond payment processors and
                 regulatory authorities.
               </p>
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                <div className="bg-[#DDF1E7] rounded-[18px] p-5">
-                  <Shield className="text-[#2F7A5F] mb-3" size={26} />
-                  <h3 className="text-[#2F7A5F] font-bold text-[16px]">ACCESS RIGHTS</h3>
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
+                <div className="bg-[#DDF1E7] rounded-2xl sm:rounded-[18px] p-4 sm:p-5">
+                  <Shield className="text-[#2F7A5F] mb-2 sm:mb-3" size={22} />
+                  <h3 className="text-[#2F7A5F] font-bold text-[13px] sm:text-[16px]">ACCESS RIGHTS</h3>
                 </div>
-                <div className="bg-[#DDF1E7] rounded-[18px] p-5">
-                  <Database className="text-[#2F7A5F] mb-3" size={26} />
-                  <h3 className="text-[#2F7A5F] font-bold text-[16px]">5-YEAR RETENTION</h3>
+                <div className="bg-[#DDF1E7] rounded-2xl sm:rounded-[18px] p-4 sm:p-5">
+                  <Database className="text-[#2F7A5F] mb-2 sm:mb-3" size={22} />
+                  <h3 className="text-[#2F7A5F] font-bold text-[13px] sm:text-[16px]">5-YEAR RETENTION</h3>
                 </div>
               </div>
-              <p className="text-[18px] leading-[1.8] text-[#4B5563]">
+              <p className="text-sm sm:text-[18px] leading-[1.6] sm:leading-[1.8] text-[#4B5563]">
                 You have the right to access, correct, erase, or withdraw
                 consent to your data at any time — requests are responded to
                 within 90 days. Data is retained for 5 years as per SEBI
@@ -165,33 +162,31 @@ const handleClick = async () => {
           </section>
 
           {/* Agreement confirmation */}
-          <div className="flex items-center gap-3 p-4 rounded-[16px] bg-[#DDF1E7]">
+          <div className="flex items-center gap-3 p-3 sm:p-4 rounded-2xl sm:rounded-[16px] bg-[#DDF1E7]">
             <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 bg-[#1E9B22]">
               <span className="text-white text-xs font-bold">✓</span>
             </div>
-            <p className="text-[13px] leading-[1.5] text-[#374151]">
+            <p className="text-xs sm:text-[13px] leading-[1.5] text-[#374151]">
               I have read, understood, and agree to the{" "}
               <span className="font-semibold text-[#064E3B]">User Agreement</span>,{" "}
               <span className="font-semibold text-[#064E3B]">SEBI Disclaimer</span>, and{" "}
               <span className="font-semibold text-[#064E3B]">DPDP Act — Data Privacy Policy</span>.
             </p>
           </div>
-
         </div>
 
         {/* Bottom Fixed Button */}
-        <div className="fixed bottom-0 left-0 right-0 flex justify-center">
-          <div className="w-full max-w-[390px] bg-white rounded-t-[28px] p-6 shadow-2xl"
-            style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}  
+        <div className="fixed bottom-0 left-0 right-0 flex justify-center z-50">
+          <div
+            className="w-full max-w-md bg-white rounded-t-3xl sm:rounded-t-[28px] p-4 sm:p-6 shadow-2xl"
+            style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
           >
-            {/* ← safe-area-inset-bottom for PWA/iPhone notch */}
             <button
               disabled={isViewMode}
-              className={`w-full h-[64px] rounded-full text-white text-[20px] font-semibold transition-all
+              className={`w-full h-12 sm:h-[64px] rounded-full text-white text-base sm:text-[20px] font-semibold transition-all active:scale-[0.99]
                 ${isViewMode
                   ? 'bg-gray-300 cursor-not-allowed'
-                  : 'bg-[#1E9B22]'
-                }`}
+                  : 'bg-[#1E9B22]'}`}
               onClick={!isViewMode ? handleClick : undefined}
             >
               {isViewMode ? 'Read Only' : 'Confirm & Continue →'}

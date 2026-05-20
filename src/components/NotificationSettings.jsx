@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronDown } from "lucide-react";
-import Navbar from "@/components/Navbar"
-
+import Navbar from "@/components/Navbar";
 
 const toneOptions = ["Cash Ring", "Chime", "Bell", "Alert", "Ping"];
 
@@ -18,7 +17,7 @@ function Toggle({ enabled, onToggle }) {
   return (
     <button
       onClick={onToggle}
-      className={`relative w-[51px] h-[31px] rounded-full transition-colors duration-200 focus:outline-none ${
+      className={`relative w-[51px] h-[31px] rounded-full transition-colors duration-200 focus:outline-none shrink-0 ${
         enabled ? "bg-[#228B22]" : "bg-gray-300"
       }`}
     >
@@ -35,10 +34,10 @@ function ToneDropdown({ value, onChange }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative">
+    <div className="relative shrink-0">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 border border-gray-300 rounded-lg px-3 py-1.5 text-[14px] text-gray-700 bg-white"
+        className="flex items-center gap-2 border border-gray-300 rounded-lg px-2 sm:px-3 py-1.5 text-[13px] sm:text-[14px] text-gray-700 bg-white"
       >
         {value}
         <ChevronDown size={14} className="text-gray-500" />
@@ -65,34 +64,28 @@ function ToneDropdown({ value, onChange }) {
 
 function CategoryCard({ label, settings, onChange }) {
   return (
-    <div className="bg-white rounded-2xl px-5 py-4 shadow-sm">
-      <h2 className="text-[16px] font-bold text-black mb-3">{label}</h2>
+    <div className="bg-white rounded-2xl px-4 sm:px-5 py-3.5 sm:py-4 shadow-sm">
+      <h2 className="text-[15px] sm:text-[16px] font-bold text-black mb-3">{label}</h2>
 
-      {/* Trade Notification */}
-      <div className="flex items-center justify-between py-3 border-b border-gray-100">
-        <span className="text-[14px] text-gray-700">Trade Notification</span>
+      <div className="flex items-center justify-between py-3 border-b border-gray-100 gap-3">
+        <span className="text-[13px] sm:text-[14px] text-gray-700">Trade Notification</span>
         <Toggle
           enabled={settings.tradeNotification}
           onToggle={() => onChange("tradeNotification", !settings.tradeNotification)}
         />
       </div>
 
-      {/* Haptic Feedback */}
-      <div className="flex items-center justify-between py-3 border-b border-gray-100">
-        <span className="text-[14px] text-gray-700">Haptic Feedback</span>
+      <div className="flex items-center justify-between py-3 border-b border-gray-100 gap-3">
+        <span className="text-[13px] sm:text-[14px] text-gray-700">Haptic Feedback</span>
         <Toggle
           enabled={settings.hapticFeedback}
           onToggle={() => onChange("hapticFeedback", !settings.hapticFeedback)}
         />
       </div>
 
-      {/* Tone */}
-      <div className="flex items-center justify-between py-3">
-        <span className="text-[14px] text-gray-700">Tone</span>
-        <ToneDropdown
-          value={settings.tone}
-          onChange={(val) => onChange("tone", val)}
-        />
+      <div className="flex items-center justify-between py-3 gap-3">
+        <span className="text-[13px] sm:text-[14px] text-gray-700">Tone</span>
+        <ToneDropdown value={settings.tone} onChange={(val) => onChange("tone", val)} />
       </div>
     </div>
   );
@@ -118,24 +111,25 @@ export default function NotificationSettings() {
   };
 
   return (
-    <main className="w-full h-[100dvh] bg-[#F3F3F7] flex justify-center overflow-hidden">
+    <main className="w-full h-app bg-[#F3F3F7] flex justify-center pt-safe">
       <div className="flex flex-col h-full w-full max-w-md bg-[#F3F3F7] relative">
 
         {/* Header */}
-        <div className="flex-none flex items-center bg-white px-4 py-3 relative shadow-sm">
+        <div className="flex-none flex items-center bg-white px-3 sm:px-4 py-3 relative shadow-sm">
           <button
             onClick={() => router.back()}
             className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm active:scale-95 transition-transform"
+            aria-label="Back"
           >
             <ChevronLeft size={20} strokeWidth={2.5} className="text-black" />
           </button>
-          <h1 className="absolute left-1/2 -translate-x-1/2 text-[18px] font-bold text-black tracking-tight">
+          <h1 className="absolute left-1/2 -translate-x-1/2 text-base sm:text-[18px] font-bold text-black tracking-tight">
             Notification Setting
           </h1>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto px-4 py-5 space-y-4 pb-24">
+        {/* Scrollable Content — pb-navbar to clear the fixed Navbar */}
+        <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-5 space-y-4 pb-navbar">
           {initialCategories.map((cat) => (
             <CategoryCard
               key={cat.id}

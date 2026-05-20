@@ -47,7 +47,6 @@ export default function Profile() {
           if (data.email) setEmail(data.email);
           if (data.gender) setGender(data.gender.toLowerCase());
 
-          // ✅ FIX DOB FORMAT
           if (data.dob) {
             const formatted = data.dob.includes("T")
               ? data.dob.split("T")[0]
@@ -82,23 +81,16 @@ export default function Profile() {
 
   const validate = () => {
     const newErrors = {};
-
-    if (!fullName.trim())
-      newErrors.fullName = "Full name is required";
-
-    if (!email.trim())
-      newErrors.email = "Email is required";
-
+    if (!fullName.trim()) newErrors.fullName = "Full name is required";
+    if (!email.trim()) newErrors.email = "Email is required";
     if (!gender) newErrors.gender = "Please select a gender";
     if (!dob) newErrors.dob = "Date of birth is required";
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
     if (!validate()) return;
-
     setIsLoading(true);
 
     try {
@@ -149,35 +141,39 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex justify-center">
-      <div className="w-full max-w-sm px-5 py-4">
+    <div className="min-h-app w-full bg-white flex justify-center pt-safe pb-safe">
+      <div className="w-full max-w-md px-4 sm:px-5 py-4">
 
         {/* Header */}
-        <div className="flex items-center mb-8">
+        <div className="flex items-center mb-6 sm:mb-8">
           <button
             onClick={() => router.push("/user-panel")}
-            className="w-8 h-8 rounded-full border flex items-center justify-center"
+            className="w-9 h-9 rounded-full border flex items-center justify-center active:scale-95 transition-transform"
+            aria-label="Back"
           >
             <ChevronLeft size={18} />
           </button>
         </div>
 
-        {/* Profile */}
+        {/* Profile pic */}
         <div className="flex flex-col items-center">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full border-4 border-green-600 overflow-hidden">
-              <Image src="/profile.png" alt="profile" width={100} height={100} />
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-green-600 overflow-hidden">
+              <Image src="/profile.png" alt="profile" width={112} height={112} className="w-full h-full object-cover" />
             </div>
 
             {!isReadOnly && (
-              <button className="absolute bottom-1 right-0 bg-green-600 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white">
+              <button
+                className="absolute bottom-0 right-0 bg-green-600 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border-2 border-white active:scale-95 transition-transform"
+                aria-label="Change profile photo"
+              >
                 <Camera size={14} className="text-white" />
               </button>
             )}
           </div>
 
-          <h2 className="mt-4 text-xl font-semibold">Profile</h2>
-          <p className="text-sm text-gray-400 mt-1">
+          <h2 className="mt-4 text-lg sm:text-xl font-semibold">Profile</h2>
+          <p className="text-xs sm:text-sm text-gray-400 mt-1">
             {isFetching
               ? "Loading your details..."
               : isReadOnly
@@ -186,10 +182,9 @@ export default function Profile() {
           </p>
         </div>
 
-        {/* Form */}
-        <div className="mt-10 space-y-6">
+        {/* Form — larger text + comfortable line height for fingers */}
+        <div className="mt-8 sm:mt-10 space-y-5 sm:space-y-6">
 
-          {/* Name */}
           <div className="border-b pb-3">
             <label className="text-xs text-gray-400">Full Name</label>
             <input
@@ -197,11 +192,11 @@ export default function Profile() {
               value={fullName}
               readOnly={isReadOnly}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full text-sm bg-transparent outline-none"
+              className="w-full text-sm sm:text-base bg-transparent outline-none py-1"
             />
+            {errors.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>}
           </div>
 
-          {/* Email */}
           <div className="border-b pb-3">
             <label className="text-xs text-gray-400">Email</label>
             <input
@@ -209,38 +204,35 @@ export default function Profile() {
               value={email}
               readOnly={isReadOnly}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full text-sm bg-transparent outline-none"
+              className="w-full text-sm sm:text-base bg-transparent outline-none py-1"
             />
+            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
           </div>
 
-          {/* Phone */}
           <div className="border-b pb-3">
             <label className="text-xs text-gray-400">Phone</label>
-            <div className="flex items-center gap-2">
-              <Phone size={16} />
+            <div className="flex items-center gap-2 py-1">
+              <Phone size={16} className="shrink-0" />
               <input
                 type="text"
                 value={phoneNumber}
                 disabled
-                className="w-full text-sm bg-transparent"
+                className="w-full text-sm sm:text-base bg-transparent text-gray-700"
               />
             </div>
           </div>
 
-          {/* ✅ Gender FIX */}
           <div className="border-b pb-3 relative">
             <label className="text-xs text-gray-400">Gender</label>
-
             <button
               type="button"
-              onClick={() => {
-                if (isReadOnly) return;
-                setGenderOpen(!genderOpen);
-              }}
-              className="w-full flex justify-between text-sm"
+              onClick={() => { if (!isReadOnly) setGenderOpen(!genderOpen); }}
+              className="w-full flex justify-between items-center text-sm sm:text-base py-1 text-left capitalize"
             >
-              {gender || "Select Gender"}
-              <ChevronDown size={16} />
+              <span className={gender ? "text-black" : "text-gray-400"}>
+                {gender || "Select Gender"}
+              </span>
+              <ChevronDown size={16} className="shrink-0" />
             </button>
 
             {genderOpen && !isReadOnly && (
@@ -248,20 +240,17 @@ export default function Profile() {
                 {["male", "female", "other"].map((g) => (
                   <button
                     key={g}
-                    className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
-                    onClick={() => {
-                      setGender(g);
-                      setGenderOpen(false);
-                    }}
+                    className="block w-full text-left px-3 py-2 text-sm sm:text-base hover:bg-gray-100 capitalize"
+                    onClick={() => { setGender(g); setGenderOpen(false); }}
                   >
                     {g}
                   </button>
                 ))}
               </div>
             )}
+            {errors.gender && <p className="text-red-500 text-xs mt-1">{errors.gender}</p>}
           </div>
 
-          {/* DOB */}
           <div className="border-b pb-3">
             <label className="text-xs text-gray-400">DOB</label>
             <input
@@ -270,18 +259,19 @@ export default function Profile() {
               onChange={(e) => setDob(e.target.value)}
               readOnly={isReadOnly}
               disabled={isReadOnly}
-              className="w-full text-sm bg-transparent"
+              className="w-full text-sm sm:text-base bg-transparent py-1"
             />
+            {errors.dob && <p className="text-red-500 text-xs mt-1">{errors.dob}</p>}
           </div>
         </div>
 
         {/* Button */}
         {!isReadOnly && (
-          <div className="mt-10">
+          <div className="mt-8 sm:mt-10">
             <button
               onClick={handleSubmit}
               disabled={isLoading}
-              className="bg-green-600 text-white w-full py-3 rounded-xl"
+              className="bg-green-600 disabled:bg-green-400 text-white w-full py-3 sm:py-3.5 rounded-xl text-base sm:text-lg font-semibold active:scale-[0.99] transition-transform"
             >
               {isLoading ? "Saving..." : "Update Profile"}
             </button>
@@ -291,7 +281,10 @@ export default function Profile() {
 
       {/* Toast */}
       {showToast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded flex items-center gap-2">
+        <div
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded flex items-center gap-2 text-sm"
+          style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
+        >
           <CheckCircle size={16} /> Saved
         </div>
       )}

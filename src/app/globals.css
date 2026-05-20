@@ -3,6 +3,12 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Dynamic viewport height fallback for older browsers */
+  --app-height: 100vh;
+}
+
+@supports (height: 100dvh) {
+  :root { --app-height: 100dvh; }
 }
 
 @theme inline {
@@ -12,36 +18,52 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ❌ Removed dark mode override — the app is light-themed only.
+   Previously this caused broken contrast for users with system dark mode on. */
 
-body {
+html, body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  /* Prevent iOS rubber-band scroll from showing page bg */
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
 }
 
-/* Rainbow ring for support icon (moved from src/styles/globals.css) */
+/* Utility: a stable, full dynamic viewport height that handles mobile browser chrome */
+.h-app {
+  height: 100vh;          /* fallback */
+  height: 100dvh;         /* dynamic viewport height */
+  min-height: -webkit-fill-available;
+}
+
+.min-h-app {
+  min-height: 100vh;      /* fallback */
+  min-height: 100dvh;
+}
+
+/* Safe-area helpers for notched / gesture-bar phones */
+.pt-safe { padding-top: env(safe-area-inset-top); }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+.pl-safe { padding-left: env(safe-area-inset-left); }
+.pr-safe { padding-right: env(safe-area-inset-right); }
+
+/* Common: bottom padding that accounts for both the fixed navbar (~72px) and safe area */
+.pb-navbar {
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+}
+
+/* Hide scrollbars but keep scroll behavior (used in horizontal sliders) */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Rainbow ring for support icon */
 @keyframes rainbow-cycle {
-  0% {
-    opacity: 0;
-  }
-
-  83% {
-    opacity: 0;
-  }
-
-  84% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 1;
-  }
+  0% { opacity: 0; }
+  83% { opacity: 0; }
+  84% { opacity: 1; }
+  100% { opacity: 1; }
 }
 
 .rainbow-ring {
@@ -53,7 +75,6 @@ body {
   transform: translate(-50%, -50%);
   border-radius: 9999px;
   background: conic-gradient(from 0deg, #ff6b6b, #f6d365, #6bffb2, #6bd1ff, #d36bff, #ff6b6b);
-  /* rotate continuously; toggle visibility on a 30s cycle (visible 10s) */
   animation: rainbow-rotate 30s linear infinite, rainbow-visibility 30s linear infinite;
   opacity: 0;
   z-index: 0;
@@ -72,24 +93,14 @@ body {
   to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-/* Show the ring for ~10s then hide for ~20s (30s total cycle).
-   Smooth fade in/out so transitions are not abrupt. */
 @keyframes rainbow-visibility {
-  /* start hidden, fade in over ~1.5s (5% of 30s) */
   0% { opacity: 0; }
   5% { opacity: 1; }
-
-  /* stay visible until near the end of the visible window */
   28% { opacity: 1; }
-
-  /* fade out over ~1.6s (28% -> 33.333% of 30s) */
   33.333% { opacity: 0; }
-
-  /* remain hidden for the rest of the 30s cycle */
   100% { opacity: 0; }
 }
 
-/* Respect user reduced-motion preference */
 @media (prefers-reduced-motion: reduce) {
   .rainbow-ring,
   .rainbow-ring::after {

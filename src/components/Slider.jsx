@@ -12,16 +12,13 @@ export default function Slider() {
   const dispatch = useDispatch();
 
   const [dots, setDots] = useState(() => {
-    // initialize all dots false
     const init = {};
     TAB_NAMES.forEach((t) => (init[t] = false));
     return init;
   });
 
-  // track the latest known message id per community (not persisted)
   const lastMaxIdsRef = useRef({});
 
-  // lastSeen persisted to localStorage: { [communityId]: lastSeenId }
   const getLastSeenMap = () => {
     try {
       const raw = localStorage.getItem('chat_lastSeen') || '{}';
@@ -39,10 +36,8 @@ export default function Slider() {
     } catch {}
   };
 
-  // helper to map tab name -> community id
   const communityIdForTab = (tabName) => communityMap[tabName];
 
-  // fetch latest message id for a community
   const fetchLatestId = async (communityId) => {
     try {
       const res = await fetch(`/api/trades/messages?community_id=${communityId}`);
@@ -50,7 +45,6 @@ export default function Slider() {
       if (json.status !== 'success') return null;
       const arr = json.data || [];
       if (!arr.length) return null;
-      // find max id
       const maxId = arr.reduce((max, m) => Math.max(max, Number(m.id || 0)), 0);
       return maxId || null;
     } catch {
@@ -58,7 +52,6 @@ export default function Slider() {
     }
   };
 
-  // initialize lastSeen map and lastMaxIdsRef without showing dots
   useEffect(() => {
     let mounted = true;
     const init = async () => {
@@ -70,7 +63,6 @@ export default function Slider() {
         if (maxId) {
           lastMaxIdsRef.current[String(cid)] = maxId;
           if (lastSeen[String(cid)] == null) {
-            // first time: set lastSeen to current max so we don't show old messages
             setLastSeenForCommunity(cid, maxId);
           }
         }
@@ -80,7 +72,6 @@ export default function Slider() {
     return () => { mounted = false; };
   }, []);
 
-  // Polling for new messages
   useEffect(() => {
     let mounted = true;
     const interval = setInterval(async () => {
@@ -98,9 +89,8 @@ export default function Slider() {
           }
         }
       }
-      // batch update dots
       setDots((prev) => ({ ...prev, ...newDots }));
-    }, 1000); // poll every 1s
+    }, 1000);
 
     return () => {
       mounted = false;
@@ -110,34 +100,31 @@ export default function Slider() {
 
   const handleTabClick = (tabName) => {
     const cid = communityIdForTab(tabName);
-    // clear dot for clicked tab and update lastSeen to current max id
     setDots((prev) => ({ ...prev, [tabName]: false }));
     const currentMax = lastMaxIdsRef.current[String(cid)] || null;
     if (currentMax) setLastSeenForCommunity(cid, currentMax);
-    // If the tab is already active, don't re-dispatch — that clears messages
     if (tabName === activeTab) return;
     dispatch(setActiveTab(tabName));
   };
 
   return (
-    <div className="flex-none flex items-center p-1.5 px-4 border-y border-black bg-white w-full max-w-md justify-center">
-      <div className="flex items-center justify-around gap-2 w-full">
+    // Replaced non-standard arbitrary values (h-8.5, px-5.5, w-1.25, etc.) with valid ones.
+    // Tabs now use flex-1 so they share width evenly across any phone size.
+    <div className="flex-none flex items-center p-1.5 px-3 sm:px-4 border-y border-black bg-white w-full max-w-md justify-center">
+      <div className="flex items-center justify-around gap-1.5 sm:gap-2 w-full">
         {TAB_NAMES.map((name) => (
           <button
             key={name}
             onClick={() => handleTabClick(name)}
-            className={`relative h-8.5 px-5.5 rounded-lg text-[11px] font-bold whitespace-nowrap transition-colors border 
-              ${
-                activeTab === name
-                  ? 'bg-[#47D185] text-white border-white shadow-md'
-                  : 'bg-white text-[#333333] border-black hover:bg-gray-50'
-              }
-            `}
+            className={`relative flex-1 min-w-0 h-9 px-2 sm:px-3 rounded-lg text-[11px] sm:text-xs font-bold whitespace-nowrap transition-colors border
+              ${activeTab === name
+                ? 'bg-[#47D185] text-white border-white shadow-md'
+                : 'bg-white text-[#333333] border-black hover:bg-gray-50'}`}
           >
-            <span className="flex items-center gap-1">
+            <span className="flex items-center justify-center gap-1">
               {name}
               {dots[name] && (
-                <span className="w-1.25 h-1.25 bg-[#FF0000] rounded-full mt-1px" />
+                <span className="w-1.5 h-1.5 bg-[#FF0000] rounded-full" />
               )}
             </span>
           </button>
