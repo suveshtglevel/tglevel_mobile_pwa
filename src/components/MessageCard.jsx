@@ -131,7 +131,7 @@ export default function MessageCard({ message, showTag, onUpgradePress }) {
 
   return (
     <>
-      <div className="mt-auto mb-4 ml-2 flex flex-col items-start w-fit max-w-[88%] sm:max-w-[92%] animate-in fade-in slide-in-from-left-2 duration-300">
+      <div className="mt-auto mb-4 ml-3.5 flex flex-col items-start w-fit max-w-[93%] sm:max-w-[93%] animate-in fade-in slide-in-from-left-2 duration-300">
 
         {/* Outer card — position:relative so badge and lock overlay can anchor to it */}
         <div className="relative bg-white p-3 pt-4 rounded-[18px] rounded-bl-none border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] w-full">
