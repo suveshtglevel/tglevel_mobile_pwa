@@ -13,7 +13,8 @@ export async function POST(request: Request) {
     body,
   });
 
-  if (res.status === 302 || res.status === 200) {
+  // Treat any 2xx or 3xx (redirect) response as success — some proxies return 303
+  if (res.status >= 200 && res.status < 400) {
     return withSessionCookie(
       { status: 'success', message: `OTP sent to ${mobile}` },
       newSession
