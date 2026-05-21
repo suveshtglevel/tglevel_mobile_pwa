@@ -11,7 +11,7 @@ export default function DownloadPage() {
   const appStoreLink = "https://apps.apple.com/us/app/tg-levels-stock-market-mentor/id6754587128";
 
   return (
-    <main className="w-full min-h-app bg-white flex justify-center">
+    <main className="w-full min-h-app bg-white flex justify-center pt-4 sm:pt-6">
       {/* Mobile Container — pb-navbar so content never sits under the fixed Navbar */}
       <div className="w-full max-w-md min-h-app flex flex-col pb-navbar">
 

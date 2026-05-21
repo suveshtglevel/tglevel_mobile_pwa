@@ -95,11 +95,10 @@ export default function TermsConditionPage() {
           {isViewMode && (
             <button
               onClick={() => router.back()}
-              className="absolute left-3 sm:left-4 flex items-center gap-1 active:scale-95 transition-transform"
+              className="absolute left-3 sm:left-4 w-9 h-9 rounded-xl shadow-sm flex items-center justify-center active:scale-95 transition-transform"
               aria-label="Back"
             >
-              <ChevronLeft size={20} strokeWidth={2.5} className="text-black" />
-              <span className="text-sm sm:text-[15px] font-medium text-black">Back</span>
+              <ChevronLeft size={20} className="text-gray-700 shrink-0" strokeWidth={2.5} />
             </button>
           )}
 
