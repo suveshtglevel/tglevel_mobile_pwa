@@ -168,6 +168,7 @@ export default function Profile() {
                 aria-label="Change profile photo"
               >
                 <Camera size={14} className="text-white" />
+                
               </button>
             )}
           </div>

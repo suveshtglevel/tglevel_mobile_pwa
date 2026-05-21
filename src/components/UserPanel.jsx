@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -43,6 +43,53 @@ function MenuItem({ icon: Icon, label, onClick }) {
 const UserPanel = () => {
   const router = useRouter();
   const [contactOpen, setContactOpen] = useState(false);
+  const [profile, setProfile] = useState({ fullName: "", email: "" });
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("userProfile");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setProfile({
+          fullName: parsed.fullName || "",
+          email: parsed.email || "",
+        });
+      }
+    } catch (err) {
+      console.error("Failed to read userProfile from localStorage", err);
+    }
+  }, []);
+
+    useEffect(() => {
+    const onFocus = () => {
+      try {
+        const raw = localStorage.getItem("userProfile");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setProfile({
+            fullName: parsed.fullName || "",
+            email: parsed.email || "",
+          });
+        }
+      } catch {}
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, []);
+
+  const initials = (() => {
+    const name = (profile.fullName || "").trim();
+    if (name) {
+      const parts = name.split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    if (profile.email) return profile.email.slice(0, 2).toUpperCase();
+    return "U";
+  })();
+
+  const displayName = profile.fullName || "Add your name";
+  const displayEmail = profile.email || "Add your email";
 
   return (
     <main className="w-full h-app bg-white flex justify-center pt-safe pb-safe">
@@ -85,8 +132,8 @@ const UserPanel = () => {
               </button>
             </div>
 
-            <h2 className="mt-4 text-base sm:text-[17px] font-bold text-black tracking-tight">James Patrick</h2>
-            <p className="text-xs sm:text-[13px] text-gray-400 mt-1 truncate max-w-full">jamespatrick@gmail.com</p>
+            <h2 className="mt-4 text-base sm:text-[17px] font-bold text-black tracking-tight">{displayName}</h2>
+            <p className="text-xs sm:text-[13px] text-gray-400 mt-1 truncate max-w-full">{displayEmail}</p>
           </div>
 
           {/* Menu */}
