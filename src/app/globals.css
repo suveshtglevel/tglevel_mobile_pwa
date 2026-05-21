@@ -3,107 +3,200 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  /* Dynamic viewport height fallback for older browsers */
+
+  /* Dynamic viewport fallback */
   --app-height: 100vh;
 }
 
 @supports (height: 100dvh) {
-  :root { --app-height: 100dvh; }
+  :root {
+    --app-height: 100dvh;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-/* ❌ Removed dark mode override — the app is light-themed only.
-   Previously this caused broken contrast for users with system dark mode on. */
+/* =========================
+   Global
+========================= */
 
-html, body {
+html,
+body {
   background: var(--background);
   color: var(--foreground);
+
   font-family: Arial, Helvetica, sans-serif;
-  /* Prevent iOS rubber-band scroll from showing page bg */
+
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
 }
 
-/* Utility: a stable, full dynamic viewport height that handles mobile browser chrome */
+/* =========================
+   Dynamic viewport helpers
+========================= */
+
 .h-app {
-  height: 100vh;          /* fallback */
-  height: 100dvh;         /* dynamic viewport height */
+  height: 100vh;
+  height: 100dvh;
   min-height: -webkit-fill-available;
 }
 
 .min-h-app {
-  min-height: 100vh;      /* fallback */
+  min-height: 100vh;
   min-height: 100dvh;
 }
 
-/* Safe-area helpers for notched / gesture-bar phones */
-.pt-safe { padding-top: env(safe-area-inset-top); }
-.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-.pl-safe { padding-left: env(safe-area-inset-left); }
-.pr-safe { padding-right: env(safe-area-inset-right); }
+/* =========================
+   Safe-area helpers
+========================= */
 
-/* Common: bottom padding that accounts for both the fixed navbar (~72px) and safe area */
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+
+.pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* =========================
+   Bottom navbar spacing
+========================= */
+
 .pb-navbar {
   padding-bottom: calc(96px + env(safe-area-inset-bottom));
 }
 
-/* Hide scrollbars but keep scroll behavior (used in horizontal sliders) */
-.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
-.no-scrollbar::-webkit-scrollbar { display: none; }
+/* =========================
+   Hide scrollbars
+========================= */
 
-/* Rainbow ring for support icon */
-@keyframes rainbow-cycle {
-  0% { opacity: 0; }
-  83% { opacity: 0; }
-  84% { opacity: 1; }
-  100% { opacity: 1; }
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.rainbow-ring {
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* =========================
+   Gradient Loader Ring
+========================= */
+
+.ring-blue {
   position: absolute;
+
   top: 50%;
   left: 50%;
-  width: calc(100% + 12px);
-  height: calc(100% + 12px);
+
+  /* Slightly larger than icon */
+  width: calc(100% + 10px);
+  height: calc(100% + 10px);
+
   transform: translate(-50%, -50%);
   border-radius: 9999px;
-  background: conic-gradient(from 0deg, #ff6b6b, #f6d365, #6bffb2, #6bd1ff, #d36bff, #ff6b6b);
-  animation: rainbow-rotate 30s linear infinite, rainbow-visibility 30s linear infinite;
-  opacity: 0;
-  z-index: 0;
+
+  /* Ring thickness */
+  padding: 3px;
+
+  /* Reversed gradient tail */
+  background:
+    conic-gradient(
+      from 0deg,
+
+      /* transparent fading trail */
+      transparent 0deg,
+      rgba(96, 165, 250, 0.03) 40deg,
+      rgba(96, 165, 250, 0.08) 100deg,
+      rgba(96, 165, 250, 0.25) 180deg,
+
+      /* darker moving head */
+      #60a5fa 260deg,
+      #2563eb 320deg,
+      #1d4ed8 360deg
+    );
+
+  /* Animations */
+  animation:
+    ring-spin 1s linear infinite,
+    ring-visibility 20s ease-in-out infinite;
+
   pointer-events: none;
+  z-index: 0;
 }
 
-.rainbow-ring::after {
-  content: '';
+/* Inner cutout */
+.ring-blue::before {
+  content: "";
+
   position: absolute;
-  inset: 6px;
+
+  inset: 3px;
+
   border-radius: inherit;
+
   background: var(--background);
 }
 
-@keyframes rainbow-rotate {
-  to { transform: translate(-50%, -50%) rotate(360deg); }
+/* Smooth rotation */
+@keyframes ring-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
 }
 
-@keyframes rainbow-visibility {
-  0% { opacity: 0; }
-  5% { opacity: 1; }
-  28% { opacity: 1; }
-  33.333% { opacity: 0; }
-  100% { opacity: 0; }
+/* Smooth visibility cycle
+   Visible ~15s
+   Hidden ~5s
+*/
+@keyframes ring-visibility {
+  /* Fully visible */
+  0% {
+    opacity: 1;
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  /* Smooth fade out */
+  75% {
+    opacity: 0;
+  }
+
+  /* Hidden */
+  95% {
+    opacity: 0;
+  }
+
+  /* Smooth fade back in */
+  100% {
+    opacity: 1;
+  }
 }
 
+/* Accessibility */
 @media (prefers-reduced-motion: reduce) {
-  .rainbow-ring,
-  .rainbow-ring::after {
+  .ring-blue {
     animation: none;
   }
 }
