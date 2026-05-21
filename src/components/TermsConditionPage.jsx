@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 export default function TermsConditionPage() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showNotifModal, setShowNotifModal] = useState(false);
   const [showBlockedModal, setShowBlockedModal] = useState(false);
   const router = useRouter();
@@ -22,12 +23,41 @@ export default function TermsConditionPage() {
   }, []);
 
   const handleClick = async () => {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    // Mark terms accepted immediately
     localStorage.setItem('terms_accepted', 'true');
 
-    // ─── Step 1: Community Join (silent background) ───────────────────────
-    const userId = localStorage.getItem('user_id');
+    // Fetch authoritative profile from server to populate localStorage.
+    // This avoids writing undefined/incorrect values from client state.
+    let fetchedUserId = null;
+    try {
+      const resp = await fetch('/api/user/edit-profile', {
+        method: 'GET',
+        credentials: 'include',
+      });
+      const data = await resp.json();
+      if (resp.ok && data.status === 'success') {
+        fetchedUserId = data.user_id || null;
+        if (fetchedUserId) localStorage.setItem('user_id', fetchedUserId);
+        if (data.phone) localStorage.setItem('phone', data.phone);
+        const profile = {
+          fullName: data.name || '',
+          email: data.email || '',
+          gender: data.gender || '',
+          dob: data.dob || '',
+          phone: data.phone || '',
+        };
+        localStorage.setItem('userProfile', JSON.stringify(profile));
+      }
+    } catch (err) {
+      console.error('Failed to fetch profile after accepting terms:', err);
+    }
+
     const isNewUser = localStorage.getItem('isNewUser') === 'true';
-    const joinedKey = userId ? `communities_joined_${userId}` : null;
+    const joinedKey = fetchedUserId ? `communities_joined_${fetchedUserId}` : null;
     const alreadyJoined = joinedKey ? localStorage.getItem(joinedKey) === 'true' : false;
 
     if (isNewUser && !alreadyJoined) {
@@ -57,6 +87,8 @@ export default function TermsConditionPage() {
       } finally {
         setDeferredPrompt(null);
       }
+
+    setIsSubmitting(false);
     }
 
     // ─── Step 3: Check Notification Permission ────────────────────────────
@@ -97,11 +129,10 @@ export default function TermsConditionPage() {
           {isViewMode && (
             <button
               onClick={() => router.back()}
-              className="absolute left-3 sm:left-4 flex items-center gap-1 active:scale-95 transition-transform"
+              className="absolute left-3 sm:left-4 w-9 h-9 rounded-xl shadow-sm flex items-center justify-center active:scale-95 transition-transform"
               aria-label="Back"
             >
-              <ChevronLeft size={20} strokeWidth={2.5} className="text-black" />
-              <span className="text-sm sm:text-[15px] font-medium text-black">Back</span>
+              <ChevronLeft size={20} className="text-gray-700 shrink-0" strokeWidth={2.5} />
             </button>
           )}
           <h1 className="text-lg sm:text-[22px] font-bold text-black">
@@ -195,8 +226,17 @@ export default function TermsConditionPage() {
             </div>
           </section>
 
-          {/* Agreement confirmation */}
-          <div className="flex items-center gap-3 p-3 sm:p-4 rounded-2xl sm:rounded-[16px] bg-[#DDF1E7]">
+          
+        </div>
+
+        {/* Bottom Fixed Button */}
+        <div className="fixed bottom-0 left-0 right-0 flex justify-center z-50">
+          <div
+            className="w-full max-w-md bg-white rounded-t-3xl sm:rounded-t-[28px] p-4 sm:p-6 shadow-2xl"
+            style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+          >
+            {/* Agreement confirmation */}
+          <div className="flex items-center gap-3 mb-4 p-3 sm:p-4 rounded-2xl sm:rounded-[16px] bg-[#DDF1E7]">
             <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 bg-[#1E9B22]">
               <span className="text-white text-xs font-bold">✓</span>
             </div>
@@ -207,23 +247,16 @@ export default function TermsConditionPage() {
               <span className="font-semibold text-[#064E3B]">DPDP Act — Data Privacy Policy</span>.
             </p>
           </div>
-        </div>
-
-        {/* Bottom Fixed Button */}
-        <div className="fixed bottom-0 left-0 right-0 flex justify-center z-50">
-          <div
-            className="w-full max-w-md bg-white rounded-t-3xl sm:rounded-t-[28px] p-4 sm:p-6 shadow-2xl"
-            style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
-          >
+          
             <button
-              disabled={isViewMode}
+              disabled={isViewMode || isSubmitting}
               className={`w-full h-12 sm:h-[64px] rounded-full text-white text-base sm:text-[20px] font-semibold transition-all active:scale-[0.99]
-                ${isViewMode
+                ${(isViewMode || isSubmitting)
                   ? 'bg-gray-300 cursor-not-allowed'
                   : 'bg-[#1E9B22]'}`}
               onClick={!isViewMode ? handleClick : undefined}
             >
-              {isViewMode ? 'Read Only' : 'Confirm & Continue →'}
+              {isViewMode ? 'Read Only' : isSubmitting ? 'Submitting...' : 'Confirm & Continue →'}
             </button>
           </div>
         </div>

@@ -11,7 +11,7 @@ export default function DownloadPage() {
   const appStoreLink = "https://apps.apple.com/us/app/tg-levels-stock-market-mentor/id6754587128";
 
   return (
-    <main className="w-full min-h-app bg-white flex justify-center">
+    <main className="w-full min-h-app bg-white flex justify-center pt-4 sm:pt-6">
       {/* Mobile Container — pb-navbar so content never sits under the fixed Navbar */}
       <div className="w-full max-w-md min-h-app flex flex-col pb-navbar">
 
@@ -19,7 +19,7 @@ export default function DownloadPage() {
         <div className="px-4 sm:px-5 pt-4 pt-safe">
           <button
             onClick={() => router.back()}
-            className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center active:scale-95 transition-transform"
+            className="w-8 h-8 rounded-xl shadow-sm flex items-center justify-center active:scale-95 transition-transform "
             aria-label="Back"
           >
             <ChevronLeft size={18} />

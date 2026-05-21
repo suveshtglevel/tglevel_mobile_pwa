@@ -39,7 +39,7 @@ export default function Navbar() {
       label: "Support",
       icon: (
         <div className="relative w-10 h-10 flex items-center justify-center">
-          <div className="rainbow-ring" />
+          <div className="ring-blue" />
           <div className="w-9 h-9 rounded-full overflow-hidden z-10">
             <Image
               src="/newCustomer.png"

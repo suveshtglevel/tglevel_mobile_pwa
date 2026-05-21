@@ -13,7 +13,9 @@ export default function Slider() {
 
   const [dots, setDots] = useState(() => {
     const init = {};
-    TAB_NAMES.forEach((t) => (init[t] = false));
+    TAB_NAMES.forEach((tab) => {
+      init[tab] = false;
+    });
     return init;
   });
 
@@ -30,23 +32,24 @@ export default function Slider() {
 
   const setLastSeenForCommunity = (communityId, id) => {
     try {
-      const m = getLastSeenMap();
-      m[String(communityId)] = id;
-      localStorage.setItem('chat_lastSeen', JSON.stringify(m));
-    } catch {}
+      const map = getLastSeenMap();
+      map[String(communityId)] = id;
+      localStorage.setItem('chat_lastSeen', JSON.stringify(map));
+    } catch {
+      // ignore storage errors
+    }
   };
 
   const communityIdForTab = (tabName) => communityMap[tabName];
 
   const fetchLatestId = async (communityId) => {
     try {
-      const res = await fetch(`/api/trades/messages?community_id=${communityId}`);
-      const json = await res.json();
+      const response = await fetch(`/api/trades/messages?community_id=${communityId}`);
+      const json = await response.json();
       if (json.status !== 'success') return null;
-      const arr = json.data || [];
-      if (!arr.length) return null;
-      const maxId = arr.reduce((max, m) => Math.max(max, Number(m.id || 0)), 0);
-      return maxId || null;
+      const messages = json.data || [];
+      if (!messages.length) return null;
+      return messages.reduce((max, message) => Math.max(max, Number(message.id || 0)), 0) || null;
     } catch {
       return null;
     }
@@ -54,41 +57,45 @@ export default function Slider() {
 
   useEffect(() => {
     let mounted = true;
+
     const init = async () => {
       const lastSeen = getLastSeenMap();
       for (const tabName of TAB_NAMES) {
-        const cid = communityIdForTab(tabName);
-        const maxId = await fetchLatestId(cid);
+        const communityId = communityIdForTab(tabName);
+        const maxId = await fetchLatestId(communityId);
         if (!mounted) return;
         if (maxId) {
-          lastMaxIdsRef.current[String(cid)] = maxId;
-          if (lastSeen[String(cid)] == null) {
-            setLastSeenForCommunity(cid, maxId);
+          lastMaxIdsRef.current[String(communityId)] = maxId;
+          if (lastSeen[String(communityId)] == null) {
+            setLastSeenForCommunity(communityId, maxId);
           }
         }
       }
     };
+
     init();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
     let mounted = true;
     const interval = setInterval(async () => {
       const lastSeen = getLastSeenMap();
-      const newDots = { ...dots };
+      const newDots = {};
+
       for (const tabName of TAB_NAMES) {
-        const cid = communityIdForTab(tabName);
-        const maxId = await fetchLatestId(cid);
+        const communityId = communityIdForTab(tabName);
+        const maxId = await fetchLatestId(communityId);
         if (!mounted) return;
         if (maxId) {
-          lastMaxIdsRef.current[String(cid)] = maxId;
-          const seen = Number(lastSeen[String(cid)] || 0);
-          if (maxId > seen) {
-            newDots[tabName] = true;
-          }
+          lastMaxIdsRef.current[String(communityId)] = maxId;
+          const seen = Number(lastSeen[String(communityId)] || 0);
+          newDots[tabName] = maxId > seen;
         }
       }
+
       setDots((prev) => ({ ...prev, ...newDots }));
     }, 1000);
 
@@ -99,33 +106,34 @@ export default function Slider() {
   }, []);
 
   const handleTabClick = (tabName) => {
-    const cid = communityIdForTab(tabName);
+    const communityId = communityIdForTab(tabName);
     setDots((prev) => ({ ...prev, [tabName]: false }));
-    const currentMax = lastMaxIdsRef.current[String(cid)] || null;
-    if (currentMax) setLastSeenForCommunity(cid, currentMax);
+
+    const currentMax = lastMaxIdsRef.current[String(communityId)] || null;
+    if (currentMax) {
+      setLastSeenForCommunity(communityId, currentMax);
+    }
+
     if (tabName === activeTab) return;
     dispatch(setActiveTab(tabName));
   };
 
   return (
-    // Replaced non-standard arbitrary values (h-8.5, px-5.5, w-1.25, etc.) with valid ones.
-    // Tabs now use flex-1 so they share width evenly across any phone size.
-    <div className="flex-none flex items-center p-1.5 px-3 sm:px-4 border-y border-black bg-white w-full max-w-md justify-center">
-      <div className="flex items-center justify-around gap-1.5 sm:gap-2 w-full">
+    <div className="flex-none flex w-full items-center justify-center border-y border-black bg-white px-3 py-1.5">
+      <div className="flex w-full max-w-md gap-1.5 sm:gap-2">
         {TAB_NAMES.map((name) => (
           <button
             key={name}
             onClick={() => handleTabClick(name)}
-            className={`relative flex-1 min-w-0 h-9 px-2 sm:px-3 rounded-lg text-[11px] sm:text-xs font-bold whitespace-nowrap transition-colors border
-              ${activeTab === name
-                ? 'bg-[#47D185] text-white border-white shadow-md'
-                : 'bg-white text-[#333333] border-black hover:bg-gray-50'}`}
+            className={`relative flex-1 min-w-0 rounded-lg border px-2 py-2 text-[10px] sm:text-[11px] font-bold whitespace-nowrap transition-colors ${
+              activeTab === name
+                ? 'border-white bg-[#47D185] text-white shadow-md'
+                : 'border-black bg-white text-[#333333] hover:bg-gray-50'
+            }`}
           >
             <span className="flex items-center justify-center gap-1">
               {name}
-              {dots[name] && (
-                <span className="w-1.5 h-1.5 bg-[#FF0000] rounded-full" />
-              )}
+              {dots[name] && <span className="h-1.5 w-1.5 rounded-full bg-[#FF0000]" />}
             </span>
           </button>
         ))}
