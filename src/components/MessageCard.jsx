@@ -63,40 +63,6 @@ function PremiumBadge() {
   );
 }
 
-// --- LOCK OVERLAY ---
-// Shown over blurred content for non-premium users.
-// Tapping it triggers the upgrade prompt (onUpgrade callback).
-function LockOverlay({ onUpgrade }) {
-  return (
-    <button
-      onClick={onUpgrade}
-      className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-1.5 rounded-[18px] rounded-bl-none cursor-pointer"
-      style={{ background: "rgba(255,255,255,0.18)", backdropFilter: "none" }}
-      aria-label="Unlock premium content"
-    >
-      <div
-        className="flex items-center justify-center w-9 h-9 rounded-full"
-        style={{
-          background: "linear-gradient(135deg, #b8860b 0%, #f5d060 50%, #c9970a 100%)",
-          boxShadow: "0 2px 8px rgba(180,130,0,0.4)",
-        }}
-      >
-        <Lock size={16} strokeWidth={2.5} className="text-yellow-900" />
-      </div>
-      <span
-        className="text-[11.5px] font-semibold tracking-wide px-3 py-1 rounded-full"
-        style={{
-          background: "linear-gradient(135deg, #b8860b 0%, #f5d060 50%, #c9970a 100%)",
-          color: "#3b2200",
-          boxShadow: "0 1px 4px rgba(180,130,0,0.3)",
-        }}
-      >
-        Unlock Premium
-      </span>
-    </button>
-  );
-}
-
 export default function MessageCard({ message, showTag, onUpgradePress }) {
   const userType = useSelector((state) => state.user.userData.userType);
   const isPremium = userType === "premium";
@@ -124,11 +90,6 @@ export default function MessageCard({ message, showTag, onUpgradePress }) {
   const hasTextContent = Boolean(message.content.text || message.content.rawHtml || message.content.encodedMessage);
   const showImage = Boolean(message.content.image && !imgError);
 
-  function handleUpgrade() {
-    // Call the parent-supplied handler (e.g. open a modal, navigate to /upgrade)
-    if (onUpgradePress) onUpgradePress();
-  }
-
   return (
     <>
       <div className="mt-auto mb-4 ml-3.5 flex flex-col items-start w-fit max-w-[93%] sm:max-w-[93%] animate-in fade-in slide-in-from-left-2 duration-300">
@@ -151,7 +112,7 @@ export default function MessageCard({ message, showTag, onUpgradePress }) {
           <div
             className={[
               "relative z-10 transition-all duration-300",
-              isLocked ? "blur-[5px] opacity-80 pointer-events-none select-none" : "",
+              isLocked ? "opacity-55" : "",
               // Extra top padding when badge is shown so text doesn't sit under it
               isMessagePremium ? "pt-1" : "",
             ].join(" ")}
@@ -198,9 +159,6 @@ export default function MessageCard({ message, showTag, onUpgradePress }) {
               </div>
             </div>
           </div>
-
-          {/* 🔒 Lock overlay — sits on top of blurred content, only for locked messages */}
-          {isLocked && <LockOverlay onUpgrade={handleUpgrade} />}
 
         </div>
       </div>
