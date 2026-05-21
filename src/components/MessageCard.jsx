@@ -112,7 +112,7 @@ export default function MessageCard({ message, showTag, onUpgradePress }) {
           <div
             className={[
               "relative z-10 transition-all duration-300",
-              isLocked ? "opacity-55" : "",
+              isLocked ? "blur-[5px] opacity-70" : "",
               // Extra top padding when badge is shown so text doesn't sit under it
               isMessagePremium ? "pt-1" : "",
             ].join(" ")}

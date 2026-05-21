@@ -172,8 +172,8 @@ export default function Chat() {
 
         {/* Trial Expired Overlay */}
         {!isTrialActive && (
-          <div className="absolute inset-0 z-40 flex items-center justify-center px-4 bg-white/10 backdrop-blur-md">
-            <div className="bg-white/90 w-full max-w-[240px] p-5 rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.15)] flex flex-col items-center border border-white/80 pointer-events-auto">
+          <div className="fixed inset-x-0 top-1/2 z-40 flex justify-center px-4 -translate-y-1/2 pointer-events-none">
+            <div className="bg-white/90 w-full max-w-[240px] p-5 rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.15)] flex flex-col items-center border border-white/80 pointer-events-auto backdrop-blur-md">
               <div className="mb-3 drop-shadow-sm">
                 <svg width="28" height="34" viewBox="0 0 24 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M7 11V7C7 4.23858 9.23858 2 12 2C14.7614 2 17 4.23858 17 7V11" stroke="#A1A1AA" strokeWidth="2.5" strokeLinecap="round"/>
