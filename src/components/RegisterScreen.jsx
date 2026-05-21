@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { updateProfile } from "../redux/userSlice";
+import { ChevronLeft } from "lucide-react";
 
 export const RegisterScreen = () => {
   const router = useRouter();
@@ -201,6 +202,7 @@ export const RegisterScreen = () => {
                 setError("");
                 setResendTimer(0);
               }}
+              
               className="
                 absolute
                 left-0
@@ -218,7 +220,7 @@ export const RegisterScreen = () => {
                 transition-all
               "
             >
-              <span className="text-xl text-black">←</span>
+              <span className="text-xl text-black"><ChevronLeft size={20} strokeWidth={2.5} className="text-black" /></span>
             </button>
           )}
 

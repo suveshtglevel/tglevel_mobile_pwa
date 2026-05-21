@@ -99,7 +99,7 @@ const UserPanel = () => {
         <div className="flex-none flex items-center bg-white px-4 py-3 relative">
           <button
             onClick={() => router.push("/chat")}
-            className="w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-sm active:scale-95 transition-transform"
+            className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm active:scale-95 transition-transform"
             aria-label="Back"
           >
             <ChevronLeft size={20} strokeWidth={2.5} className="text-black" />

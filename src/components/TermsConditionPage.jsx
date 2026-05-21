@@ -161,8 +161,17 @@ export default function TermsConditionPage() {
             </div>
           </section>
 
-          {/* Agreement confirmation */}
-          <div className="flex items-center gap-3 p-3 sm:p-4 rounded-2xl sm:rounded-[16px] bg-[#DDF1E7]">
+          
+        </div>
+
+        {/* Bottom Fixed Button */}
+        <div className="fixed bottom-0 left-0 right-0 flex justify-center z-50">
+          <div
+            className="w-full max-w-md bg-white rounded-t-3xl sm:rounded-t-[28px] p-4 sm:p-6 shadow-2xl"
+            style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+          >
+            {/* Agreement confirmation */}
+          <div className="flex items-center gap-3 mb-4 p-3 sm:p-4 rounded-2xl sm:rounded-[16px] bg-[#DDF1E7]">
             <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 bg-[#1E9B22]">
               <span className="text-white text-xs font-bold">✓</span>
             </div>
@@ -173,14 +182,7 @@ export default function TermsConditionPage() {
               <span className="font-semibold text-[#064E3B]">DPDP Act — Data Privacy Policy</span>.
             </p>
           </div>
-        </div>
-
-        {/* Bottom Fixed Button */}
-        <div className="fixed bottom-0 left-0 right-0 flex justify-center z-50">
-          <div
-            className="w-full max-w-md bg-white rounded-t-3xl sm:rounded-t-[28px] p-4 sm:p-6 shadow-2xl"
-            style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
-          >
+          
             <button
               disabled={isViewMode}
               className={`w-full h-12 sm:h-[64px] rounded-full text-white text-base sm:text-[20px] font-semibold transition-all active:scale-[0.99]

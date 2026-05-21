@@ -148,10 +148,10 @@ export default function Profile() {
         <div className="flex items-center mb-6 sm:mb-8">
           <button
             onClick={() => router.push("/user-panel")}
-            className="w-9 h-9 rounded-full border flex items-center justify-center active:scale-95 transition-transform"
+            className="w-9 h-9 rounded-xl shadow-sm flex items-center justify-center active:scale-95 transition-transform"
             aria-label="Back"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={20} className="text-gray-700 shrink-0" strokeWidth={2.5} />
           </button>
         </div>
 
@@ -168,7 +168,7 @@ export default function Profile() {
                 aria-label="Change profile photo"
               >
                 <Camera size={14} className="text-white" />
-                
+
               </button>
             )}
           </div>
