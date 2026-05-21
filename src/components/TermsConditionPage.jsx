@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 export default function TermsConditionPage() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const isViewMode = searchParams.get('mode') === 'view';
@@ -20,11 +21,41 @@ export default function TermsConditionPage() {
   }, []);
 
   const handleClick = async () => {
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    // Mark terms accepted immediately
     localStorage.setItem('terms_accepted', 'true');
 
-    const userId = localStorage.getItem('user_id');
+    // Fetch authoritative profile from server to populate localStorage.
+    // This avoids writing undefined/incorrect values from client state.
+    let fetchedUserId = null;
+    try {
+      const resp = await fetch('/api/user/edit-profile', {
+        method: 'GET',
+        credentials: 'include',
+      });
+      const data = await resp.json();
+      if (resp.ok && data.status === 'success') {
+        fetchedUserId = data.user_id || null;
+        if (fetchedUserId) localStorage.setItem('user_id', fetchedUserId);
+        if (data.phone) localStorage.setItem('phone', data.phone);
+        const profile = {
+          fullName: data.name || '',
+          email: data.email || '',
+          gender: data.gender || '',
+          dob: data.dob || '',
+          phone: data.phone || '',
+        };
+        localStorage.setItem('userProfile', JSON.stringify(profile));
+      }
+    } catch (err) {
+      console.error('Failed to fetch profile after accepting terms:', err);
+    }
+
     const isNewUser = localStorage.getItem('isNewUser') === 'true';
-    const joinedKey = userId ? `communities_joined_${userId}` : null;
+    const joinedKey = fetchedUserId ? `communities_joined_${fetchedUserId}` : null;
     const alreadyJoined = joinedKey ? localStorage.getItem(joinedKey) === 'true' : false;
 
     if (isNewUser && !alreadyJoined) {
@@ -50,6 +81,8 @@ export default function TermsConditionPage() {
       await deferredPrompt.userChoice;
       setDeferredPrompt(null);
     }
+
+    setIsSubmitting(false);
     router.push('/chat');
   };
 
@@ -182,14 +215,14 @@ export default function TermsConditionPage() {
             style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
           >
             <button
-              disabled={isViewMode}
+              disabled={isViewMode || isSubmitting}
               className={`w-full h-12 sm:h-[64px] rounded-full text-white text-base sm:text-[20px] font-semibold transition-all active:scale-[0.99]
-                ${isViewMode
+                ${(isViewMode || isSubmitting)
                   ? 'bg-gray-300 cursor-not-allowed'
                   : 'bg-[#1E9B22]'}`}
               onClick={!isViewMode ? handleClick : undefined}
             >
-              {isViewMode ? 'Read Only' : 'Confirm & Continue →'}
+              {isViewMode ? 'Read Only' : isSubmitting ? 'Submitting...' : 'Confirm & Continue →'}
             </button>
           </div>
         </div>
