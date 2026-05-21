@@ -7,6 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 export default function TermsConditionPage() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showNotifModal, setShowNotifModal] = useState(false);
+  const [showBlockedModal, setShowBlockedModal] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const isViewMode = searchParams.get('mode') === 'view';
@@ -66,7 +68,6 @@ export default function TermsConditionPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ community_ids: [7, 9, 11, 13] }),
         });
-
         const data = await response.json();
         if (response.ok && (data.status === 'success' || data.status === true)) {
           if (joinedKey) localStorage.setItem(joinedKey, 'true');
@@ -76,14 +77,47 @@ export default function TermsConditionPage() {
       }
     }
 
+    // ─── Step 2: PWA Install FIRST ───────────────────────────────────────
     if (deferredPrompt) {
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      setDeferredPrompt(null);
-    }
+      try {
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+      } catch (e) {
+        console.error('PWA prompt error:', e);
+      } finally {
+        setDeferredPrompt(null);
+      }
 
     setIsSubmitting(false);
-    router.push('/chat');
+    }
+
+    // ─── Step 3: Check Notification Permission ────────────────────────────
+    if (Notification.permission === 'granted') {
+      router.push('/chat');
+      return;
+    }
+
+    if (Notification.permission === 'denied') {
+      setShowBlockedModal(true);
+      return;
+    }
+
+    // ─── Step 4: permission === 'default' — show custom modal ────────────
+    setShowNotifModal(true);
+  };
+
+  const handleAllowNotification = async () => {
+    setShowNotifModal(false);
+    try {
+      const result = await Notification.requestPermission();
+      if (result === 'granted') {
+        router.push('/chat');
+      } else {
+        setShowBlockedModal(true);
+      }
+    } catch (e) {
+      console.error('Notification permission error:', e);
+    }
   };
 
   return (
@@ -101,13 +135,12 @@ export default function TermsConditionPage() {
               <ChevronLeft size={20} className="text-gray-700 shrink-0" strokeWidth={2.5} />
             </button>
           )}
-
           <h1 className="text-lg sm:text-[22px] font-bold text-black">
             Terms & Conditions
           </h1>
         </div>
 
-        {/* Content — responsive padding, leaves room for sticky button at bottom */}
+        {/* Content */}
         <div className="px-4 sm:px-6 py-6 sm:py-8 pb-40 sm:pb-[220px] space-y-8 sm:space-y-10">
 
           {/* USER AGREEMENT */}
@@ -227,6 +260,154 @@ export default function TermsConditionPage() {
             </button>
           </div>
         </div>
+
+        {/* ─── Custom Notification Permission Modal ──────────────────────── */}
+        {showNotifModal && (
+          <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60">
+            <div
+              className="w-full max-w-md bg-white rounded-t-3xl p-6 space-y-5 shadow-2xl"
+              style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
+            >
+              {/* Icon */}
+              <div className="flex justify-center">
+                <div className="w-16 h-16 rounded-full bg-[#DDF1E7] flex items-center justify-center">
+                  <span className="text-3xl">🔔</span>
+                </div>
+              </div>
+
+              {/* Text */}
+              <div className="text-center space-y-2">
+                <h3 className="text-[18px] font-bold text-[#121826]">
+                  Enable Notifications
+                </h3>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  Stay updated with the latest stock research,
+                  alerts, and portfolio updates in real time.
+                </p>
+              </div>
+
+              {/* Benefits */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 bg-[#F3F3F7] rounded-2xl p-3">
+                  <span className="text-lg">📈</span>
+                  <p className="text-sm text-[#374151]">Real-time stock alerts</p>
+                </div>
+                <div className="flex items-center gap-3 bg-[#F3F3F7] rounded-2xl p-3">
+                  <span className="text-lg">📊</span>
+                  <p className="text-sm text-[#374151]">Model portfolio updates</p>
+                </div>
+                <div className="flex items-center gap-3 bg-[#F3F3F7] rounded-2xl p-3">
+                  <span className="text-lg">📋</span>
+                  <p className="text-sm text-[#374151]">New research reports</p>
+                </div>
+              </div>
+
+              {/* ONLY Allow button */}
+              <button
+                onClick={handleAllowNotification}
+                className="w-full h-14 rounded-full bg-[#1E9B22] text-white text-[16px] font-semibold active:scale-[0.99] transition-all"
+              >
+                Allow Notifications 🔔
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ─── Notifications Blocked Modal ───────────────────────────────── */}
+        {showBlockedModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4">
+            <div className="w-full max-w-sm bg-[#1E1E1E] rounded-2xl overflow-hidden shadow-2xl">
+
+              {/* Header */}
+              <div className="px-5 pt-5 pb-3">
+                <p className="text-gray-400 text-xs mb-1">your-site.com says</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">🔔</span>
+                  <h3 className="text-white text-[15px] font-semibold">
+                    Notifications are blocked.
+                  </h3>
+                </div>
+              </div>
+
+              {/* SVG Illustration */}
+              <div className="mx-4 rounded-xl overflow-hidden border border-white/10 bg-[#2A2A2A]">
+                <svg viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg" className="w-full">
+                  <defs>
+                    <marker id="arrowYellow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                      <path d="M0,0 L0,6 L6,3 z" fill="#FFD700" />
+                    </marker>
+                    <marker id="arrowGreen" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                      <path d="M0,0 L0,6 L6,3 z" fill="#1E9B22" />
+                    </marker>
+                  </defs>
+
+                  <rect width="320" height="180" fill="#2A2A2A" />
+
+                  {/* Address bar */}
+                  <rect x="10" y="10" width="300" height="32" rx="8" fill="#3A3A3A" />
+                  <rect x="18" y="18" width="18" height="16" rx="3" fill="#555" />
+                  <text x="27" y="30" textAnchor="middle" fontSize="11" fill="white">🔒</text>
+                  <text x="95" y="30" fontSize="9" fill="#aaa">your-site.trycloudflare.com</text>
+
+                  {/* Arrow to lock */}
+                  <line x1="27" y1="46" x2="27" y2="56" stroke="#FFD700" strokeWidth="2" markerEnd="url(#arrowYellow)" />
+                  <text x="38" y="62" fontSize="8" fill="#FFD700" fontWeight="bold">① Tap lock</text>
+
+                  {/* Dropdown */}
+                  <rect x="8" y="66" width="185" height="106" rx="8" fill="#3D3D3D" stroke="#555" strokeWidth="1" />
+                  <text x="18" y="82" fontSize="8" fill="#aaa">Site settings</text>
+                  <line x1="8" y1="88" x2="193" y2="88" stroke="#555" strokeWidth="0.5" />
+
+                  {/* Notifications row — highlighted */}
+                  <rect x="8" y="88" width="185" height="30" fill="#4A4A4A" />
+                  <text x="18" y="107" fontSize="9" fill="white" fontWeight="bold">🔔 Notifications</text>
+                  <rect x="128" y="94" width="52" height="17" rx="4" fill="#FF4444" />
+                  <text x="154" y="106" textAnchor="middle" fontSize="8" fill="white">Blocked</text>
+
+                  {/* Arrow to notifications */}
+                  <line x1="230" y1="103" x2="196" y2="103" stroke="#FFD700" strokeWidth="2" markerEnd="url(#arrowYellow)" />
+                  <text x="232" y="99" fontSize="8" fill="#FFD700" fontWeight="bold">② Find this</text>
+
+                  {/* Allow row */}
+                  <rect x="8" y="118" width="185" height="28" rx="0" fill="#3D3D3D" />
+                  <text x="18" y="135" fontSize="8" fill="#aaa">Change to:</text>
+                  <rect x="95" y="122" width="55" height="18" rx="4" fill="#1E9B22" />
+                  <text x="122" y="134" textAnchor="middle" fontSize="9" fill="white" fontWeight="bold">✓ Allow</text>
+
+                  {/* Arrow to Allow */}
+                  <line x1="230" y1="131" x2="153" y2="131" stroke="#1E9B22" strokeWidth="2" markerEnd="url(#arrowGreen)" />
+                  <text x="232" y="127" fontSize="8" fill="#1E9B22" fontWeight="bold">③ Set Allow</text>
+                </svg>
+              </div>
+
+              {/* Steps */}
+              <div className="px-5 py-4 space-y-1">
+                <p className="text-gray-300 text-xs">To enable:</p>
+                <p className="text-gray-300 text-xs">1. Tap the 🔒 lock icon in your browser address bar</p>
+                <p className="text-gray-300 text-xs">2. Find <span className="text-white font-semibold">Notifications</span></p>
+                <p className="text-gray-300 text-xs">3. Set to <span className="text-[#1E9B22] font-semibold">Allow</span></p>
+                <p className="text-gray-300 text-xs">4. Refresh the page</p>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex border-t border-white/10">
+                <button
+                  onClick={() => setShowBlockedModal(false)}
+                  className="flex-1 py-3 text-sm text-gray-400 border-r border-white/10"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => { setShowBlockedModal(false); window.location.reload(); }}
+                  className="flex-1 py-3 text-sm text-[#1E9B22] font-semibold"
+                >
+                  Refresh ↺
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

@@ -45,9 +45,10 @@
   // }
 
 
-  import { Inter } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import StoreProvider from "../redux/StoreProvider"; // ← relative path
+import OneSignalInit from "@/components/OneSignalInit"; // ← relative path
 
 const inter = Inter({
   subsets: ["latin"],
@@ -84,6 +85,7 @@ export default function RootLayout({ children }) {
           __html: `if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js')`
         }} />
         <StoreProvider>
+          <OneSignalInit />
           {children}
         </StoreProvider>
       </body>
