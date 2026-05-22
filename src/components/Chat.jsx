@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useLayoutEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import { fetchInitialMessages, fetchOlderMessages } from '@/redux/chatSlice';
+import { categoryLabels } from '@/utils/chatMessageApi';
 import { Users } from 'lucide-react';
 import MessageCard from './MessageCard';
 import WhiteCard from './WhiteCard';
@@ -157,7 +158,7 @@ export default function Chat() {
                 {msg.type === 'white' ? (
                   <WhiteCard message={msg} />
                 ) : (
-                  <MessageCard message={msg} showTag={activeTab === 'All'} />
+                  <MessageCard message={msg} showTag tag={categoryLabels[activeTab]} />
                 )}
               </React.Fragment>
             );

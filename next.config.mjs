@@ -36,6 +36,13 @@ const nextConfig = {
         source: "/api/:path*",
         destination: "https://app.tglevels.in/:path*",
       },
+      // Proxy CRM (Support Board) assets through our own origin so the chat
+      // iframe's @font-face fonts load same-origin and skip the CORS check
+      // that tglevels.org fails (no Access-Control-Allow-Origin header).
+      {
+        source: "/crm/:path*",
+        destination: "https://tglevels.org/:path*",
+      },
     ];
   },
 

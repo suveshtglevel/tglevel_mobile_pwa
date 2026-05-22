@@ -5,6 +5,14 @@ export const communityMap = {
   SWG: 13,
 };
 
+// Human-readable category label per tab — shown as the pill tag on each card.
+export const categoryLabels = {
+  NFT: "Nifty",
+  EQT: "Equity",
+  COM: "Commodity",
+  SWG: "Swing",
+};
+
 const sortMessagesAscending = (messages) =>
   [...messages].sort((left, right) => Number(left.id) - Number(right.id));
 
