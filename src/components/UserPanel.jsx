@@ -190,8 +190,8 @@ const UserPanel = () => {
 
                           <div className="flex items-center gap-3 px-3 sm:px-4 py-3">
                             <Mail size={18} className="text-gray-500 shrink-0" strokeWidth={1.9} />
-                            <a href="mailto:companyname@tglevels.com" className="text-[13px] sm:text-[14px] text-blue-500 truncate min-w-0">
-                              companyname@tglevels.com
+                            <a href="mailto:contact@tglevels.com" className="text-[13px] sm:text-[14px] text-blue-500 truncate min-w-0">
+                              contact@tglevels.com
                             </a>
                           </div>
                         </div>

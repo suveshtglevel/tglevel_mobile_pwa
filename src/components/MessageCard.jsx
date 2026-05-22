@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { CheckCheck, Eye, X, Lock, Crown, Sparkles } from 'lucide-react';
+import { CheckCheck, X } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { decodeHtmlEntities, stripEmptyPlaceholders, autoLinkHtml } from '@/lib/messageRenderer';
 
@@ -40,30 +40,29 @@ const parseSmartText = (content) => {
 
 // --- PREMIUM BADGE ---
 // Shown top-right on every message that requires a premium subscription.
-// Uses a warm gold gradient to signal exclusivity without being loud.
+// Per Figma (Rectangle 1348): diagonal gold gradient, thin white border,
+// soft drop shadow. 78×20 pill with centered "Premium" text.
 function PremiumBadge() {
   return (
-    <div className="absolute top-[-1px] right-[-1px] z-20 flex items-center gap-1 px-2.5 py-[5px] rounded-bl-[14px] rounded-tr-[18px] rounded-tl-none rounded-br-none"
+    <div
+      className="absolute top-1.5 right-1.5 z-20 flex items-center justify-center rounded-full"
       style={{
-        background: "linear-gradient(135deg, #b8860b 0%, #f5d060 45%, #c9970a 100%)",
-        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 1px 4px rgba(180,130,0,0.25)",
-        border: "1px solid rgba(255,255,255,0.4)",
-        borderTop: "none",
-        borderRight: "none",
+        width: "78px",
+        height: "20px",
+        background:
+          "linear-gradient(151.96deg, #6E5B1D -37.31%, #FFECB3 55.27%, #6E5B1D 116.92%)",
+        // border: "0.1px solid #FFFFFF",
+        boxShadow: "0px 1px 4px rgba(0, 0, 0, 0.25)",
       }}
     >
-      <Crown size={10} strokeWidth={2.5} className="text-yellow-900 opacity-80 shrink-0" />
-      <span
-        className="text-[11px] font-semibold tracking-wide leading-none"
-        style={{ color: "#3b2200", textShadow: "0 1px 0 rgba(255,255,255,0.3)" }}
-      >
+      <span className="text-[12px] font-bold tracking-wide leading-none text-black">
         Premium
       </span>
     </div>
   );
 }
 
-export default function MessageCard({ message, showTag, onUpgradePress }) {
+export default function MessageCard({ message, showTag, tag, onUpgradePress }) {
   const userType = useSelector((state) => state.user.userData.userType);
   const isPremium = userType === "premium";
 
@@ -92,15 +91,19 @@ export default function MessageCard({ message, showTag, onUpgradePress }) {
 
   return (
     <>
-      <div className="mt-auto mb-4 ml-3.5 flex flex-col items-start w-fit max-w-[93%] sm:max-w-[93%] animate-in fade-in slide-in-from-left-2 duration-300">
+      <div className="mt-auto mb-4 ml-3.5 flex flex-col items-start w-[93%] sm:w-[93%] animate-in fade-in slide-in-from-left-2 duration-300">
 
-        {/* Outer card — position:relative so badge and lock overlay can anchor to it */}
-        <div className="relative bg-white p-3 pt-4 rounded-[18px] rounded-bl-none border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] w-full">
+        {/* Outer card — matches the Figma container: white fill, 12px radius, no border.
+            The drop-shadow filter (not box-shadow) is applied here so the SINGLE shadow
+            wraps both the card body and the tail child as one seamless shape. */}
+        <div className="relative bg-white p-3 pt-4 rounded-[12px] w-full [filter:drop-shadow(0_4px_4px_rgba(0,0,0,0.25))]">
 
-          {/* SVG tail — uses standard arbitrary values */}
-          <div className="absolute bottom-[-1px] -left-[11px] w-[13px] h-4 z-0 drop-shadow-sm">
-            <svg viewBox="0 0 13 16" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M13 0 Q9 14 0 15.5 L13 15.5" fill="#ffffff" stroke="#E5E7EB" strokeWidth="1.5" />
+          {/* Speech-bubble tail — the bottom-left curl, traced directly from the Figma path.
+              No border/stroke and no own shadow: it's pure white fill that overlaps into the
+              card, and the parent's drop-shadow filter covers it so the corner is seamless. */}
+          <div className="absolute bottom-0 -left-[8px] w-[20px] h-[13px] z-0">
+            <svg viewBox="0 0 20 13" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7.6 0.8 C7.2 1.5 6.3 2.3 5.3 3 C2.3 5.1 0.4 7.7 3.9 8.2 C5.9 8.5 9.5 9.6 11.2 10.8 C13.7 12.4 17.1 12.9 18.9 12.9 L20 12.9 L20 0 Z" fill="#ffffff" />
             </svg>
           </div>
 
@@ -113,8 +116,8 @@ export default function MessageCard({ message, showTag, onUpgradePress }) {
             className={[
               "relative z-10 transition-all duration-300",
               isLocked ? "blur-[5px] opacity-70" : "",
-              // Extra top padding when badge is shown so text doesn't sit under it
-              isMessagePremium ? "pt-1" : "",
+              // Extra top padding when badge is shown so text clears it with a slight gap
+              isMessagePremium ? "pt-6" : "",
             ].join(" ")}
           >
             {/* 1. IMAGE */}
@@ -128,7 +131,7 @@ export default function MessageCard({ message, showTag, onUpgradePress }) {
                   alt="Attached Image"
                   width={400}
                   height={300}
-                  className="w-full h-auto max-h-[200px] object-cover transition-transform duration-200"
+                  className="w-full h-auto object-contain transition-transform duration-200"
                   onError={() => setImgError(true)}
                 />
               </div>
@@ -145,11 +148,11 @@ export default function MessageCard({ message, showTag, onUpgradePress }) {
             <div className="flex items-center justify-between mt-3 pt-1 gap-2 w-full">
               <div className="flex items-center gap-1.5 shrink-0">
                 <span className="text-[12px] text-blue-600 font-medium tracking-tight">
-                  #{message.id ? String(message.id).slice(-6) : '123'}
+                  #{message.id ? String(message.id).slice(-3) : '123'}
                 </span>
-                {showTag && message.tag && (
+                {showTag && (tag || message.tag) && (
                   <span className="border border-[#228b22] text-black px-1.5 py-0.5 rounded-[5px] text-[10px] font-medium tracking-tight bg-white">
-                    {message.tag}
+                    {tag || message.tag}
                   </span>
                 )}
               </div>
