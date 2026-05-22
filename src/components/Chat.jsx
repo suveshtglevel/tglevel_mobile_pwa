@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useLayoutEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import { fetchInitialMessages, fetchOlderMessages } from '@/redux/chatSlice';
+import { setLoading, updateProfile } from '@/redux/userSlice';
 import { Users } from 'lucide-react';
 import MessageCard from './MessageCard';
 import WhiteCard from './WhiteCard';
@@ -47,9 +48,61 @@ export default function Chat() {
   const totalTraders = 29795;
   const topThreshold = 50;
 
+  const syncTrialState = async () => {
+    const userId = localStorage.getItem('user_id');
+
+    if (!userId) {
+      dispatch(setLoading(false));
+      return;
+    }
+
+    dispatch(setLoading(true));
+
+    try {
+      const response = await fetch(`/api/profile?user_id=${encodeURIComponent(userId)}`, {
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status === 'success') {
+        const nextState = {
+          name: `${data.user?.first_name || ''} ${data.user?.last_name || ''}`.trim() || data.user?.first_name || 'Guest User',
+          email: data.user?.email || '',
+          phone: data.user?.phone || '',
+          gender: data.user?.gender || '',
+          dob: data.user?.dob || '',
+          avatar: data.user?.image || data.user?.avatar || '',
+          userType: data.is_active ? 'premium' : 'free',
+          daysLeft: typeof data.days_left === 'number' ? data.days_left : 0,
+          expiryDate: data.expiry_date || '',
+          expiryDateUi: data.expiry_date_ui || '',
+          isActive: Boolean(data.is_active),
+        };
+
+        dispatch(updateProfile(nextState));
+
+        localStorage.setItem('trialExpiry', JSON.stringify({
+          expiryDate: nextState.expiryDate,
+          expiryDateUi: nextState.expiryDateUi,
+          daysLeft: nextState.daysLeft,
+          isActive: nextState.isActive,
+        }));
+      } else {
+        dispatch(setLoading(false));
+      }
+    } catch {
+      dispatch(setLoading(false));
+    }
+  };
+
   useEffect(() => {
     didInitialScrollRef.current = false;
   }, [activeTab]);
+
+  useEffect(() => {
+    syncTrialState();
+  }, []);
 
   useEffect(() => {
     const promise = dispatch(fetchInitialMessages(activeTab));

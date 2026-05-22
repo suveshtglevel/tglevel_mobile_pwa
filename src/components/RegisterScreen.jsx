@@ -105,6 +105,8 @@ export const RegisterScreen = () => {
           data.isNewUser ? "true" : "false"
         );
 
+        window.dispatchEvent(new Event('trial-session-changed'));
+
         dispatch(
           updateProfile({
             isNewUser: data.isNewUser,

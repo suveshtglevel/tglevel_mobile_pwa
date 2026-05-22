@@ -120,8 +120,17 @@ function BootstrapTrialState() {
 
     loadTrialState();
 
+    const handleSessionChange = () => {
+      loadTrialState();
+    };
+
+    window.addEventListener('trial-session-changed', handleSessionChange);
+    window.addEventListener('storage', handleSessionChange);
+
     return () => {
       cancelled = true;
+      window.removeEventListener('trial-session-changed', handleSessionChange);
+      window.removeEventListener('storage', handleSessionChange);
     };
   }, [dispatch]);
 
