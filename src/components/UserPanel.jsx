@@ -123,13 +123,13 @@ const UserPanel = () => {
                 />
                 <span className="relative z-10 text-white text-2xl font-semibold">{initials}</span>
               </div>
-              <button
+              {/* <button
                 type="button"
                 className="absolute -right-1 -bottom-1 w-8 h-8 rounded-full bg-[#228B22] border-2 border-white flex items-center justify-center shadow-sm active:scale-95 transition-transform"
                 aria-label="Change profile photo"
               >
                 <Camera size={13} className="text-white" strokeWidth={2.5} />
-              </button>
+              </button> */}
             </div>
 
             <h2 className="mt-4 text-base sm:text-[17px] font-bold text-black tracking-tight">{displayName}</h2>
