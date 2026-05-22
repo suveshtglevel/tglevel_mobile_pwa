@@ -2,11 +2,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 
 export default function Header() {
-  const dispatch = useDispatch();
   const router = useRouter();
   const { userData, unreadNotifications, isLoading } = useSelector((state) => state.user);
   const { userType, daysLeft, expiryDateUi, isActive } = userData;
@@ -33,7 +32,7 @@ export default function Header() {
 
   const handleChevronClick = (e) => {
     e.stopPropagation();
-    if (isPremium) setOpen((prev) => !prev);
+    if (isTrialActive) setOpen((prev) => !prev);
   };
 
   return (

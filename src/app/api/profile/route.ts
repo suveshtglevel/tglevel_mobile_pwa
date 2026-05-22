@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import mysql from 'mysql2/promise';
-import { unserialize } from 'php-serialize';
 import { DateTime } from 'luxon';
 
 export const runtime = 'nodejs';
@@ -15,25 +14,24 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-type GroupDetail = {
-  community_id: number | string;
-  group_id: number | string;
-  days?: number | string;
-  exit_date?: string;
-};
-
-function parseExitDate(raw?: string) {
+function parseDateTime(raw: unknown) {
   if (!raw) return null;
 
+  if (raw instanceof Date) {
+    return DateTime.fromJSDate(raw, { zone: 'Asia/Kolkata' });
+  }
+
+  if (typeof raw !== 'string') return null;
+
   const candidate = raw.trim();
+  if (!candidate) return null;
+
   const formats = [
-    'd-M-yyyy H:m:s',
-    'd-M-yyyy H:m',
-    'd-M-yyyy',
-    'd-M-yy H:m:s',
-    'd-M-yy',
     'yyyy-LL-dd HH:mm:ss',
+    'yyyy-LL-dd HH:mm:ss.SSS',
     'yyyy-LL-dd',
+    "yyyy-LL-dd'T'HH:mm:ss.SSS'Z'",
+    "yyyy-LL-dd'T'HH:mm:ss'Z'",
   ];
 
   for (const format of formats) {
@@ -47,13 +45,56 @@ function parseExitDate(raw?: string) {
   return null;
 }
 
-function computeExpiry(groupDetails: GroupDetail[]) {
-  const parsedDates = groupDetails
-    .map((group) => parseExitDate(group.exit_date))
-    .filter((date): date is DateTime => Boolean(date));
+function isWeekend(dateTime: DateTime) {
+  return dateTime.weekday === 6 || dateTime.weekday === 7;
+}
 
-  if (!parsedDates.length) {
+function normalizeTrialStart(createdAt: DateTime) {
+  let cursor = createdAt.setZone('Asia/Kolkata').startOf('day');
+  while (isWeekend(cursor)) {
+    cursor = cursor.plus({ days: 1 });
+  }
+  return cursor;
+}
+
+function addBusinessDays(startDate: DateTime, businessDays: number) {
+  let cursor = startDate.startOf('day');
+  let counted = 1;
+
+  while (counted < businessDays) {
+    cursor = cursor.plus({ days: 1 });
+    if (!isWeekend(cursor)) {
+      counted += 1;
+    }
+  }
+
+  return cursor;
+}
+
+function countBusinessDaysInclusive(from: DateTime, to: DateTime) {
+  if (from > to) return 0;
+
+  let cursor = from.startOf('day');
+  const end = to.startOf('day');
+  let total = 0;
+
+  while (cursor <= end) {
+    if (!isWeekend(cursor)) {
+      total += 1;
+    }
+    cursor = cursor.plus({ days: 1 });
+  }
+
+  return total;
+}
+
+function computeTrial(createdAtRaw: unknown) {
+  const createdAt = parseDateTime(createdAtRaw);
+
+  if (!createdAt) {
     return {
+      trial_start_date: null,
+      trial_start_date_ui: null,
       expiry_date: null,
       expiry_date_ui: null,
       days_left: 0,
@@ -61,65 +102,71 @@ function computeExpiry(groupDetails: GroupDetail[]) {
     };
   }
 
-  const latest = parsedDates.sort((a, b) => b.toMillis() - a.toMillis())[0];
+  const trialStart = normalizeTrialStart(createdAt);
+  const expiry = addBusinessDays(trialStart, 5);
   const today = DateTime.now().setZone('Asia/Kolkata').startOf('day');
-  const expiryDay = latest.setZone('Asia/Kolkata').startOf('day');
-
-  const daysLeft = Math.max(0, Math.ceil(expiryDay.diff(today, 'days').days));
+  const daysLeft = countBusinessDaysInclusive(today, expiry);
 
   return {
-    expiry_date: latest.toISODate(),
-    expiry_date_ui: latest.toFormat('dd/MM/yyyy'),
-    days_left: daysLeft,
-    is_active: daysLeft > 0,
+    trial_start_date: trialStart.toISODate(),
+    trial_start_date_ui: trialStart.toFormat('dd/MM/yyyy'),
+    expiry_date: expiry.toISODate(),
+    expiry_date_ui: expiry.toFormat('dd/MM/yyyy'),
+    days_left: today <= expiry ? daysLeft : 0,
+    is_active: today <= expiry,
   };
-}
-
-function normalizeGroupDetails(rawValue: unknown): GroupDetail[] {
-  if (typeof rawValue !== 'string' || !rawValue.trim()) return [];
-
-  try {
-    const parsed = unserialize(rawValue) as unknown;
-    if (Array.isArray(parsed)) return parsed as GroupDetail[];
-    if (parsed && typeof parsed === 'object') {
-      return Object.values(parsed as Record<string, GroupDetail>);
-    }
-    return [];
-  } catch {
-    return [];
-  }
 }
 
 export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get('user_id');
 
   if (!userId) {
-    return NextResponse.json({ status: 'error', message: 'user_id required' }, { status: 400 });
+    return NextResponse.json(
+      { status: 'error', message: 'user_id required' },
+      { status: 400 }
+    );
   }
 
   try {
-    const [rows] = await pool.execute('SELECT * FROM dbt_user WHERE user_id = ? LIMIT 1', [userId]);
-    const user = Array.isArray(rows) && rows.length > 0 ? (rows[0] as Record<string, unknown>) : null;
+    const [rows] = await pool.execute(
+      'SELECT * FROM dbt_user WHERE user_id = ? LIMIT 1',
+      [userId]
+    );
+
+    const user =
+      Array.isArray(rows) && rows.length > 0
+        ? (rows[0] as Record<string, unknown>)
+        : null;
 
     if (!user) {
-      return NextResponse.json({ status: 'error', message: 'User not found' }, { status: 404 });
+      return NextResponse.json(
+        { status: 'error', message: 'User not found' },
+        { status: 404 }
+      );
     }
 
-    const groupDetails = normalizeGroupDetails(user.group_details);
-    const expiry = computeExpiry(groupDetails);
+    const trial = computeTrial(user.created);
 
     return NextResponse.json({
       status: 'success',
+
       user: {
         ...user,
-        group_details: groupDetails,
+        created: parseDateTime(user.created)?.toISO() || null,
+        created_ui: parseDateTime(user.created)?.toFormat('dd/MM/yyyy') || null,
       },
-      ...expiry,
+      ...trial,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown database error';
+    const message =
+      error instanceof Error ? error.message : 'Unknown database error';
+
     return NextResponse.json(
-      { status: 'error', message: 'Failed to fetch profile expiry', error: message },
+      {
+        status: 'error',
+        message: 'Failed to fetch user',
+        error: message,
+      },
       { status: 500 }
     );
   }
