@@ -9,6 +9,9 @@ const initialState = {
     avatar: "",
     userType: "free",
     daysLeft: 5,
+    expiryDate: "",
+    expiryDateUi: "",
+    isActive: false,
     isNewUser: true,
     hasCompletedOnboarding: false,
   },
@@ -21,7 +24,14 @@ const userSlice = createSlice({
   initialState,
   reducers: {
     updateProfile: (state, action) => {
-      state.userData = { ...state.userData, ...action.payload };
+      const nextUserData = { ...state.userData, ...action.payload };
+      if (typeof action.payload?.isActive === 'boolean') {
+        nextUserData.userType = action.payload.isActive ? 'premium' : 'free';
+      }
+      if (typeof action.payload?.days_left === 'number' && nextUserData.daysLeft == null) {
+        nextUserData.daysLeft = action.payload.days_left;
+      }
+      state.userData = nextUserData;
       state.isLoading = false; // 🟢 FIX: Data aate hi loading ko false kar denge
     },
     toggleUserMode: (state) => {

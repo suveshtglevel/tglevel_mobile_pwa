@@ -34,8 +34,9 @@ export default function Chat() {
   const router = useRouter();
 
   const { activeTab, messagesData, isLoading, isLoadingMore, hasMoreOlder, error } = useSelector((state) => state.chat);
-  const userType = useSelector((state) => state.user.userData.userType);
-  const isTrialActive = userType === 'premium';
+  const { userData, isLoading: isTrialLoading } = useSelector((state) => state.user);
+  const { userType, isActive } = userData;
+  const isTrialActive = !isTrialLoading && isActive && userType === 'premium';
 
   const scrollContainerRef = useRef(null);
   const isFetchingOlderRef = useRef(false);
@@ -171,7 +172,7 @@ export default function Chat() {
         </div>
 
         {/* Trial Expired Overlay */}
-        {!isTrialActive && (
+        {!isTrialLoading && !isTrialActive && (
           <div className="fixed inset-x-0 top-1/2 z-40 flex justify-center px-4 -translate-y-1/2 pointer-events-none">
             <div className="bg-white/90 w-full max-w-[240px] p-5 rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.15)] flex flex-col items-center border border-white/80 pointer-events-auto backdrop-blur-md">
               <div className="mb-3 drop-shadow-sm">
