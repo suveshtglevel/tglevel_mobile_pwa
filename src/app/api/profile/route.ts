@@ -4,15 +4,28 @@ import { DateTime } from 'luxon';
 
 export const runtime = 'nodejs';
 
-const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'app',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
+function createPool() {
+  const host = process.env.DB_HOST;
+  const user = process.env.DB_USER;
+  const password = process.env.DB_PASSWORD;
+  const database = process.env.DB_NAME;
+
+  if (!host || !user || password === undefined || !database) {
+    throw new Error('Missing DB env vars: DB_HOST, DB_USER, DB_PASSWORD, DB_NAME');
+  }
+
+  return mysql.createPool({
+    host,
+    user,
+    password,
+    database,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+  });
+}
+
+const pool = createPool();
 
 function parseDateTime(raw: unknown) {
   if (!raw) return null;
