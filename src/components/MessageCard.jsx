@@ -43,7 +43,7 @@ const parseSmartText = (content) => {
 // Uses a warm gold gradient to signal exclusivity without being loud.
 function PremiumBadge() {
   return (
-    <div className="absolute top-[-1px] right-[-1px] z-20 flex items-center gap-1 px-2.5 py-[5px] rounded-bl-[14px] rounded-tr-[18px] rounded-tl-none rounded-br-none"
+    <div className="absolute top-[-1px] right-[-1px] z-20 flex items-center gap-1 px-2.5 py-[5px] rounded-bl-[14px] rounded-tr-[12px] rounded-tl-none rounded-br-none"
       style={{
         background: "linear-gradient(135deg, #b8860b 0%, #f5d060 45%, #c9970a 100%)",
         boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35), 0 1px 4px rgba(180,130,0,0.25)",
@@ -94,13 +94,17 @@ export default function MessageCard({ message, showTag, onUpgradePress }) {
     <>
       <div className="mt-auto mb-4 ml-3.5 flex flex-col items-start w-fit max-w-[93%] sm:max-w-[93%] animate-in fade-in slide-in-from-left-2 duration-300">
 
-        {/* Outer card — position:relative so badge and lock overlay can anchor to it */}
-        <div className="relative bg-white p-3 pt-4 rounded-[18px] rounded-bl-none border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] w-full">
+        {/* Outer card — matches the Figma container: white fill, 12px radius, no border.
+            The drop-shadow filter (not box-shadow) is applied here so the SINGLE shadow
+            wraps both the card body and the tail child as one seamless shape. */}
+        <div className="relative bg-white p-3 pt-4 rounded-[12px] w-full [filter:drop-shadow(0_4px_4px_rgba(0,0,0,0.25))]">
 
-          {/* SVG tail — uses standard arbitrary values */}
-          <div className="absolute bottom-[-1px] -left-[11px] w-[13px] h-4 z-0 drop-shadow-sm">
-            <svg viewBox="0 0 13 16" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M13 0 Q9 14 0 15.5 L13 15.5" fill="#ffffff" stroke="#E5E7EB" strokeWidth="1.5" />
+          {/* Speech-bubble tail — the bottom-left curl, traced directly from the Figma path.
+              No border/stroke and no own shadow: it's pure white fill that overlaps into the
+              card, and the parent's drop-shadow filter covers it so the corner is seamless. */}
+          <div className="absolute bottom-0 -left-[8px] w-[20px] h-[13px] z-0">
+            <svg viewBox="0 0 20 13" className="w-full h-full" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7.6 0.8 C7.2 1.5 6.3 2.3 5.3 3 C2.3 5.1 0.4 7.7 3.9 8.2 C5.9 8.5 9.5 9.6 11.2 10.8 C13.7 12.4 17.1 12.9 18.9 12.9 L20 12.9 L20 0 Z" fill="#ffffff" />
             </svg>
           </div>
 
