@@ -121,7 +121,7 @@ const UserPanel = () => {
                   className="object-cover"
                   onError={(event) => { event.currentTarget.style.display = "none"; }}
                 />
-                <span className="relative z-10 text-white text-2xl font-semibold">JP</span>
+                <span className="relative z-10 text-white text-2xl font-semibold">{initials}</span>
               </div>
               <button
                 type="button"
