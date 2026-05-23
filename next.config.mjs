@@ -112,6 +112,7 @@ const isDev = process.env.NODE_ENV === "development";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  allowedDevOrigins: ['dev.tglevels.me'],
   images: {
     remotePatterns: [
       {
@@ -148,7 +149,7 @@ const nextConfig = {
 
               script-src 'self' 'unsafe-inline' ${
                 isDev ? "'unsafe-eval'" : ""
-              } https://tglevels.org https://cdn.onesignal.com https://onesignal.com https://api.onesignal.com;
+              } https://tglevels.org https://cdn.onesignal.com https://onesignal.com https://api.onesignal.com   https://static.cloudflareinsights.com;
 
               style-src 'self' 'unsafe-inline'
                 https://tglevels.org
