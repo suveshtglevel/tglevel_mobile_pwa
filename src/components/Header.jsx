@@ -2,16 +2,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { useSelector, useDispatch } from 'react-redux';
-import { toggleUserMode } from '@/redux/userSlice';
+import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 
 export default function Header() {
-  const dispatch = useDispatch();
   const router = useRouter();
-  const { userData, unreadNotifications } = useSelector((state) => state.user);
-  const { userType, daysLeft } = userData;
-  const isPremium = userType === "premium";
+  const { userData, unreadNotifications, isLoading } = useSelector((state) => state.user);
+  const { userType, daysLeft, expiryDateUi, isActive } = userData;
+  const isTrialActive = isActive && userType === "premium";
 
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -25,13 +23,16 @@ export default function Header() {
   }, []);
 
   const handleBadgeClick = () => {
-    setOpen(false);
-    dispatch(toggleUserMode());
+    if (isTrialActive) {
+      setOpen((prev) => !prev);
+    } else {
+      setOpen(false);
+    }
   };
 
   const handleChevronClick = (e) => {
     e.stopPropagation();
-    if (isPremium) setOpen((prev) => !prev);
+    if (isTrialActive) setOpen((prev) => !prev);
   };
 
   return (
@@ -57,15 +58,17 @@ export default function Header() {
           role="button"
           tabIndex={0}
           className={`flex items-center justify-between h-8 px-2 rounded-xl border-2 shadow-sm bg-white cursor-pointer transition-all duration-300
-            ${isPremium ? "border-[#228B22]" : "border-red-500"}`}
+            ${isLoading ? "border-gray-300" : isTrialActive ? "border-[#228B22]" : "border-red-500"}`}
         >
           <span className="text-[12px] sm:text-[14px] font-semibold text-black truncate">
-            {isPremium
-              ? `Free trial - 03/12/2025 (${daysLeft}d)`
-              : "Trial Expired"}
+            {isLoading
+              ? 'Loading trial...'
+              : isTrialActive
+                ? `Free trial - ${expiryDateUi || '--/--/----'} (${daysLeft}d)`
+                : `Trial Expired - ${expiryDateUi || '--/--/----'}`}
           </span>
 
-          {isPremium && (
+          {isTrialActive && !isLoading && (
             <div
               onClick={handleChevronClick}
               className="ml-1 shrink-0 flex items-center justify-center"
@@ -78,7 +81,7 @@ export default function Header() {
         </div>
 
         {/* DROPDOWN */}
-        {isPremium && open && (
+        {isTrialActive && !isLoading && open && (
           <div className="absolute top-14 left-3 right-3 bg-white border border-gray-200 rounded-2xl shadow-xl p-4 animate-in fade-in slide-in-from-top-2 z-50">
             <div className="flex flex-col gap-4 text-[14px] text-black">
               <div className="flex justify-between items-center">
@@ -88,6 +91,10 @@ export default function Header() {
               <div className="flex justify-between items-center">
                 <span className="font-semibold">Remaining</span>
                 <span>{daysLeft} days</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold">Expiry Date</span>
+                <span>{expiryDateUi || '--/--/----'}</span>
               </div>
             </div>
           </div>
